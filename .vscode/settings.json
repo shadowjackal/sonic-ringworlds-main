@@ -1,0 +1,15 @@
+{
+    "files.associations": {
+        "vecmath.h": "c",
+        "geometry3d.h": "c",
+        "matricemath.h": "c",
+        "cmath": "c",
+        "matricemathf.h": "c",
+        "vecmathf.h": "c",
+        "SGL.H": "cpp",
+        "SL_DEF.H": "cpp",
+        "type_traits": "c",
+        "numbers": "c",
+        "random": "c"
+    }
+}
