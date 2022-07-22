@@ -8,7 +8,7 @@ JO_COMPILE_WITH_EFFECTS_MODULE = 0
 JO_COMPILE_WITH_FAST_BUT_LESS_ACCURATE_MATH = 1
 JO_DEBUG = 1
 JO_GLOBAL_MEMORY_SIZE_FOR_MALLOC = 262144
-SRCS=main.c  
+SRCS=main.c ssv.c jklmath.c jklcol.c
 JO_ENGINE_SRC_DIR=../../jo_engine
 COMPILER_DIR=../../Compiler
 include $(COMPILER_DIR)/COMMON/jo_engine_makefile
