@@ -339,20 +339,29 @@ bool PointInTri(tri *t, vec3 *point) {
     vec3 c = vec3sub(&t->c,point);  
 
     vec3 u = cross_fixed(b, c);
-    u = normalize(u);
+    u.x = u.x>>8;
+    u.y = u.y>>8;
+    u.z = u.z>>8;
+
     vec3 v = cross_fixed(c, a);
-    v = normalize(v);
+    v.x = v.x>>8;
+    v.y = v.y>>8;
+    v.z = v.z>>8;
+
     vec3 w = cross_fixed(a, b);   
-    w = normalize(w);
+    w.x = w.x>>8;
+    w.y = w.y>>8;
+    w.z = w.z>>8;
+
 
     slPrintFX(dotvec3(&u, &v),slLocate(0,5));
     slPrintFX(dotvec3(&u, &w),slLocate(0,6));
     
-    if (dotvec3(&u, &v) < toFIXED(0)) {
+    if (dotvec3(&u, &v) < toFIXED(1)) {
       return false;
     }
 
-    if (dotvec3(&u, &w) < toFIXED(0)) {
+    if (dotvec3(&u, &w) < toFIXED(1)) {
       return false;
     }
 
@@ -892,7 +901,7 @@ void			jo_main(void)
     //jo_sprite_add_tga("16", "BL2.TGA", JO_COLOR_Transparent);
     //jo_sprite_add_tga("17", "BL3.TGA", JO_COLOR_Transparent);
     jo_sprite_add_tga("18","CHP.TGA",JO_COLOR_Transparent);
-    testtri = tridef((vec3){toFIXED(0),toFIXED(-20),toFIXED(0)},(vec3){toFIXED(20),toFIXED(0),toFIXED(0)},(vec3){toFIXED(0),toFIXED(0),toFIXED(20)});
+    testtri = tridef((vec3){toFIXED(0),toFIXED(-50),toFIXED(0)},(vec3){toFIXED(50),toFIXED(0),toFIXED(0)},(vec3){toFIXED(0),toFIXED(0),toFIXED(50)});
     trimesh = coltri2mesh(&testtri);
 
     jo_set_tga_palette_handling(my_tga_palette_handling);    //jo_set_tga_palette_handling(&image_pal);
