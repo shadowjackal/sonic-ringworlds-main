@@ -357,11 +357,11 @@ bool PointInTri(tri *t, vec3 *point) {
     slPrintFX(dotvec3(&u, &v),slLocate(0,5));
     slPrintFX(dotvec3(&u, &w),slLocate(0,6));
     
-    if (dotvec3(&u, &v) < toFIXED(1)) {
+    if (dotvec3(&u, &v) < toFIXED(0)) {
       return false;
     }
 
-    if (dotvec3(&u, &w) < toFIXED(1)) {
+    if (dotvec3(&u, &w) < toFIXED(0)) {
       return false;
     }
 
@@ -747,7 +747,7 @@ void			    my_draw(void)
     cam.viewpoint_pos.z = campos.z;
 
     cam.target_pos.x = sonic.x;
-    cam.target_pos.y = sonic.y+toFIXED(-12);
+    cam.target_pos.y = sonic.y;
     cam.target_pos.z = sonic.z;
 
     fframe += 0.25;
@@ -797,7 +797,6 @@ void			    my_draw(void)
 
     slPushMatrix();
     {
-        slTranslate(0,0,0);
         slPutPolygonX(&trimesh,(VECTOR){0,0,0});
     }
     slPopMatrix();
