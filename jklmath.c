@@ -82,13 +82,23 @@ void                vec3orbit(vec3 *position, vec3 *target, FIXED distance, ANGL
         position->z = target->z + slMulFX(slSin(angle),distance);
 }
 
+vec3 shift8(vec3 *tbs) {
+    vec3 ret;
+    ret.x = tbs->x>>8;
+    ret.y = tbs->y>>8;
+    ret.z = tbs->z>>8;
+    return ret;
+}
+
 vec3ang    dirtoeuler(vec3 *direction) {
     vec3ang rot;
-    rot.x = -slAtan(-direction->y, direction->z);
-    if (-direction->y >= 0) {
-       rot.z = slAtan(slMulFX(direction->x, slCos(rot.x)), direction->z);
-    }else{
-       rot.z = slAtan(slMulFX(direction->x, slCos(rot.x)), -direction->z );
-    }
+    //rot.x = -slAtan(-direction->y, direction->z);
+    //if (-direction->y >= 0) {
+    //   rot.z = slAtan(slMulFX(direction->x, slCos(rot.x)), direction->z);
+    //}else{
+    //   rot.z = slAtan(slMulFX(direction->x, slCos(rot.x)), -direction->z );
+    //}
+    rot.z=slAtan(-direction->y, direction->x);
+    rot.x=-slAtan(-direction->y, direction->z);
     return rot;
 }

@@ -32,9 +32,6 @@ Plane PlaneFromTri(tri t) {
 	result.normal.asArray[2] = (slMulFX(UVEC[0], VVEC[1]) - (slMulFX(UVEC[1], VVEC[0])));
     result.normal = normalize(result.normal);
     result.distance = slInnerProduct((FIXED *)result.normal.asArray, (FIXED *)retri.a.asArray);
-    slPrintFX(result.normal.x,slLocate(0,12));
-    slPrintFX(result.normal.y,slLocate(0,13));
-    slPrintFX(result.normal.z,slLocate(0,14));
     return result;
 }
 
@@ -48,61 +45,63 @@ return vec3subn(*point, vec3flt(&plane->normal,distance));
 bool SpherePlane(const Sphere *s, const Plane *p) {
     vec3 closestPoint = ClosestPoint(p,&s->position);
     int dif = (JO_ABS(s->position.asArray[X] - closestPoint.asArray[X]) + JO_ABS(s->position.asArray[Y] - closestPoint.asArray[Y]) + JO_ABS(s->position.asArray[Z] - closestPoint.asArray[Z]));
-    slPrintFX(dif,slLocate(0,17));
     return dif < s->radius;
 }
 
 
-bool PointInTri(tri *t, vec3 *point) {
-    vec3 a = vec3sub(&t->a,point); 
-    vec3 b = vec3sub(&t->b,point); 
-    vec3 c = vec3sub(&t->c,point);  
-
-    vec3 u = cross_fixed(b, c);
-    u.x = u.x>>8;
-    u.y = u.y>>8;
-    u.z = u.z>>8;
-
-    vec3 v = cross_fixed(c, a);
-    v.x = v.x>>8;
-    v.y = v.y>>8;
-    v.z = v.z>>8;
-
-    vec3 w = cross_fixed(a, b);   
-    w.x = w.x>>8;
-    w.y = w.y>>8;
-    w.z = w.z>>8;
-
-
-    slPrintFX(dotvec3(&u, &v),slLocate(0,5));
-    slPrintFX(dotvec3(&u, &w),slLocate(0,6));
+bool PointInTri(tri *t, vec3 *point) {    
+    vec3 a, b, c;
+    a = vec3sub(&t->a, point);
+    b = vec3sub(&t->b, point);
+    c = vec3sub(&t->c, point);
     
-    if (dotvec3(&u, &v) < toFIXED(0)) {
-      return false;
-    }
+    // Prevent fixed-point overflow
+    a = normalize(a);
+    b = normalize(b);
+    c = normalize(c);
+    
+    vec3 u, v, w;
+    u = cross_fixed(b, c);
+    v = cross_fixed(c, a);
+    w = cross_fixed(a, b);
 
-    if (dotvec3(&u, &w) < toFIXED(0)) {
-      return false;
-    }
+    slPrintFX(slInnerProduct(&u.asArray, &v.asArray),slLocate(0,5));
+    slPrintFX(slInnerProduct(&u.asArray, &w.asArray),slLocate(0,6));
 
+    
+    if (slInnerProduct((FIXED *)&u.asArray, (FIXED *)&v.asArray) < 0)
+        return false;
+    if (slInnerProduct((FIXED *)&u.asArray, (FIXED *)&w.asArray) < 0)
+        return false;
+    slPrint("in tri", slLocate(0,24));
     return true;
 }
 
-vec3 ClosestPointLine(const vec3 *start,const vec3 *end, const vec3 point) {
-	vec3 lVec = vec3sub(end, start); // Line Vector
-	// Project "point" onto the "Line Vector", computing:
-	// closest(t) = start + t * (end - start)
-	// T is how far along the line the projected point is
-	FIXED t = slDivFX(dotvec3n(vec3sub(&point, start), lVec), dotvec3(&lVec, &lVec));
-	// Clamp t to the 0 to 1 range
-	t = JO_MAX(t, toFIXED(0.0f));
-	t = JO_MIN(t, toFIXED(1.0f));
-	// Return projected position of t
-    slPrintFX(vec3addn(*start,vec3flt(&lVec,t)).x,slLocate(0,22));
-    slPrintFX(vec3addn(*start,vec3flt(&lVec,t)).y,slLocate(0,23));
-    slPrintFX(vec3addn(*start,vec3flt(&lVec,t)).z,slLocate(0,24));
+    
 
-	return vec3addn(*start, vec3flt(&lVec, t));
+vec3 ClosestPointLine(const vec3 *start,const vec3 *end, const vec3 point) {
+    vec3 AP, AB;
+    AP = vec3sub(&point, start);
+    AB = vec3sub(end, start);
+    
+    FIXED ap_dot_ab = slInnerProduct(AP.asArray, AB.asArray);
+    
+    // Point is behind start of the segment, so perpendicular distance is not viable
+    if (ap_dot_ab <= toFIXED(0.0)) {
+        return *start;
+    }
+    
+    FIXED ab_dot_ab = slInnerProduct(AB.asArray, AB.asArray);
+    
+    // Point is beyond end of the segment, so perpendicular distance is not viable
+    if (ap_dot_ab >= ab_dot_ab) {
+        return *end;
+    }
+    
+    FIXED t = slDivFX(ab_dot_ab, ap_dot_ab);
+    
+    vec3 out = vec3flt(&AB, t);
+    return vec3add(&out, start);
 }
 
 vec3 ClosestPointTri(tri *t, vec3 *point) {
@@ -111,11 +110,9 @@ vec3 ClosestPointTri(tri *t, vec3 *point) {
 
 	// Closest point was inside triangle
 	if (PointInTri(t, &closest)) {
-        slPrintFX(closest.x,slLocate(0,18));
-        slPrintFX(closest.y,slLocate(0,19));
-        slPrintFX(closest.z,slLocate(0,20));
 		return closest;
 	}
+    slPrint("out of tri", slLocate(0,24));
 
 	vec3 c1 = ClosestPointLine(&t->a, &t->b, closest); // Line AB
 	vec3 c2 = ClosestPointLine(&t->b, &t->c, closest); // Line BC
@@ -126,20 +123,11 @@ vec3 ClosestPointTri(tri *t, vec3 *point) {
 	FIXED magSq3 = magsqvec3n(vec3sub(&closest,&c3));//(JO_ABS(closest.asArray[X] - c3.asArray[X]) + JO_ABS(closest.asArray[Y] - c3.asArray[Y]) + JO_ABS(closest.asArray[Z] - c3.asArray[Z]));
 
 	if (magSq1 < magSq2 && magSq1 < magSq3) {
-        slPrintFX(c1.x,slLocate(0,18));
-        slPrintFX(c1.y,slLocate(0,19));
-        slPrintFX(c1.z,slLocate(0,20));
 		return c1;
 	}
 	else if (magSq2 < magSq1 && magSq2 < magSq3) {
-        slPrintFX(c2.x,slLocate(0,18));
-        slPrintFX(c2.y,slLocate(0,19));
-        slPrintFX(c2.z,slLocate(0,20));
 		return c2;
 	}
-        slPrintFX(c3.x,slLocate(0,18));
-        slPrintFX(c3.y,slLocate(0,19));
-        slPrintFX(c3.z,slLocate(0,20));
 	return c3;
 }
 
@@ -147,7 +135,7 @@ bool TriangleSphere(tri *t, Sphere *s) {
 vec3 closest = ClosestPointTri(t, &s->position);
 FIXED magSq = (JO_ABS(closest.asArray[X] - s->position.asArray[X]) + JO_ABS(closest.asArray[Y] - s->position.asArray[Y]) + JO_ABS(closest.asArray[Z] - s->position.asArray[Z]));
 
-return magSq <= s->radius;
+return magSq < s->radius;
 }
 
 vec3 linetodir(vec3 *from, vec3 *to) {

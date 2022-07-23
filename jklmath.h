@@ -46,6 +46,7 @@ extern int magsqint(vec3 *v);
 extern vec3 normalize(vec3 p);
 extern vec3	cross_fixed(vec3 vector1, vec3 vector2);
 
+extern vec3 shift8(vec3 *tbs);
 extern void vec3orbit(vec3 *position, vec3 *target, FIXED distance, ANGLE angle);
 extern vec3ang dirtoeuler(vec3 *direction);
 

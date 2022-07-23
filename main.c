@@ -45,6 +45,7 @@ unsigned int            megainfo;
 FIXED time;
 jklmesh player;
 jklmesh player0;
+jklmesh orbinautmodel;
 
 int frame;
 int ja = 0;
@@ -60,6 +61,13 @@ typedef struct playerobject {
     ANGLE yrot;
     vec3ang orientation;
 } playerobject;
+
+typedef struct orbinaut {
+    vec3 pos;
+    int rot;
+} orbinaut;
+
+orbinaut orb1;
 
 playerobject sonic;
 
@@ -89,32 +97,32 @@ void                my_gamepad(void)
     switch (jo_get_input_direction_pressed(0))
     {
     case LEFT: 
-    sonic.x -= toFIXED(5); 
+    sonic.x -= toFIXED(2); 
     break;
     case RIGHT: 
-    sonic.x += toFIXED(5); 
+    sonic.x += toFIXED(2); 
     break;
     case UP: 
-    sonic.z += toFIXED(5); 
+    sonic.z += toFIXED(2); 
     break;
     case DOWN: 
-    sonic.z -= toFIXED(5); 
+    sonic.z -= toFIXED(2); 
     break;
     case UP_LEFT:  
-    sonic.x -= toFIXED(5); 
-    sonic.z += toFIXED(5);  
+    sonic.x -= toFIXED(2); 
+    sonic.z += toFIXED(2);  
     break;
     case UP_RIGHT:  
-    sonic.x += toFIXED(5); 
-    sonic.z += toFIXED(5); 
+    sonic.x += toFIXED(2); 
+    sonic.z += toFIXED(2); 
     break;
     case DOWN_LEFT: 
-    sonic.x -= toFIXED(5); 
-    sonic.z -= toFIXED(5); 
+    sonic.x -= toFIXED(2); 
+    sonic.z -= toFIXED(2); 
     break;
     case DOWN_RIGHT:  
-    sonic.x += toFIXED(5); 
-    sonic.z -= toFIXED(5); 
+    sonic.x += toFIXED(2); 
+    sonic.z -= toFIXED(2); 
     break;
     case NONE: break;
     }
@@ -142,6 +150,7 @@ void                my_gamepad(void)
 }
 
 
+
 void			    my_draw(void)
 {
     my_gamepad();
@@ -165,7 +174,7 @@ void			    my_draw(void)
     fframe += 0.25;
     if(fframe >= 80) fframe = 0;
    // jo_printf(12, 1, "*ANIM TEST*");
-   ssv_update(&player,(int)fframe);
+   //ssv_update(&player,(int)fframe);
 
     Plane floor;
     floor.normal.asArray[0] = toFIXED(0);
@@ -174,21 +183,34 @@ void			    my_draw(void)
     floor.distance = 0;
     Sphere camsphere;
     camsphere.position.asArray[0] = sonic.x;
-    camsphere.position.asArray[1] = sonic.y+toFIXED(-6);
+    camsphere.position.asArray[1] = sonic.y;
     camsphere.position.asArray[2] = sonic.z;
-    camsphere.radius = toFIXED(6);
+    camsphere.radius = toFIXED(9);
 
-    sonic.orientation = dirtoeuler(&plna.normal);
+    sonic.orientation = dirtoeuler(&floor.normal);
 
-    slPrintFX((sonic.x),slLocate(0,1));
-    slPrintFX((sonic.y),slLocate(0,2));
-    slPrintFX((sonic.z),slLocate(0,3));
+    slPrintFX((sonic.x),slLocate(0,0));
+    slPrintFX((sonic.y),slLocate(0,1));
+    slPrintFX((sonic.z),slLocate(0,2));
     if(TriangleSphere(&testtri, &camsphere)) jo_printf(0,4,"BOOL : True"); else jo_printf(0,4,"BOOL : False");
     b += (1);
     jo_3d_camera_look_at(&cam);
+
+
+    FIXED pos[][XYZS] =
+    {    
+        {orb1.pos.x,orb1.pos.y,orb1.pos.z,toFIXED(0.20f)},   
+    };
+    
+    SPR_ATTR attr[] =
+    {
+        SPR_ATTRIBUTE(18, 0, No_Gouraud, CL32KRGB | ECenb | SPenb, sprNoflip | FUNC_Sprite | _ZmCC),
+    };
+
+
     slPushMatrix();
     {
-        slTranslate(sonic.x, sonic.y+toFIXED(-12), sonic.z);
+        slTranslate(sonic.x, sonic.y, sonic.z);
         slScale(toFIXED(1),toFIXED(1),toFIXED(1));
         slRotX(sonic.orientation.asArray[0]);
         slRotY(sonic.orientation.asArray[1]);
@@ -199,9 +221,19 @@ void			    my_draw(void)
 
     slPushMatrix();
     {
-        slPutPolygonX(&trimesh,(VECTOR){0,0,0});
+        slPutSprite((FIXED *)pos[0], (SPR_ATTR *)(&(attr[0].texno)), 0);
+        slTranslate(orb1.pos.x,orb1.pos.y+toFIXED(-5),orb1.pos.z);
+        slPutPolygonX(&orbinautmodel,livec);
     }
     slPopMatrix();
+
+    slPushMatrix();
+    {
+        slPutPolygonX(&trimesh,(VECTOR){0,0,0});
+        //slPutPolygonX(&orbinautmodel,livec);
+    }
+    slPopMatrix();
+
 
     jo_3d_push_matrix();
     {
@@ -258,21 +290,19 @@ void			jo_main(void)
     jo_printf(0,0,"Loading : 0 %%");
     jo_fixed_point_time();
     player = ssv_load("OBJ.SSV",0,true,false);
-
-
-    //player0 = ssv_load("BAL.SSV",14,true,false);
-    jo_printf(0,0,"Loading : 25 %%");
-    jo_printf(0,0,"Loading : 50 %%");
-    jo_printf(0,0,"Loading : 75 %%");
-    jo_printf(0,0,"Loading : 100 %%");
-
-    //est_load(ssvlist0);
-
-   // jo_printf(1, 4, "Thing: %d", ssv_quad_count(file_name));
-
+    player0 = ssv_load("BAL.SSV",14,true,false);
+    orbinautmodel = ssv_load("ORB.SSV",19,false,false);
+    for(int i = 0; i < orbinautmodel.data.nbPolygon; i++) {
+    orbinautmodel.data.attbl[i].sort |= SORT_MAX; 
+    }
+    orb1.pos.x = toFIXED(-10);
+    orb1.pos.y = toFIXED(-5);
+    orb1.pos.z = toFIXED(-10);
     livec[0] = toFIXED(-0.5f);
     livec[1] = toFIXED(0.5f);
     livec[2] = toFIXED(0);
+
+    sonic.y = toFIXED(-11);
     jo_sprite_add_tga("00", "S01.TGA", JO_COLOR_Transparent);
     jo_sprite_add_tga("01", "S02.TGA", JO_COLOR_Transparent);
     jo_sprite_add_tga("02", "S03.TGA", JO_COLOR_Transparent);
@@ -287,12 +317,18 @@ void			jo_main(void)
     jo_sprite_add_tga("11", "S12.TGA", JO_COLOR_Transparent);
     jo_sprite_add_tga("12", "S14.TGA", JO_COLOR_Transparent);
     jo_sprite_add_tga("13", "S15.TGA", JO_COLOR_Transparent);
-    //jo_sprite_add_tga("14", "BL0.TGA", JO_COLOR_Transparent);
-    //jo_sprite_add_tga("15", "BL1.TGA", JO_COLOR_Transparent);
-    //jo_sprite_add_tga("16", "BL2.TGA", JO_COLOR_Transparent);
-    //jo_sprite_add_tga("17", "BL3.TGA", JO_COLOR_Transparent);
+    jo_sprite_add_tga("14", "BL0.TGA", JO_COLOR_Transparent);
+    jo_sprite_add_tga("15", "BL1.TGA", JO_COLOR_Transparent);
+    jo_sprite_add_tga("16", "BL2.TGA", JO_COLOR_Transparent);
+    jo_sprite_add_tga("17", "BL3.TGA", JO_COLOR_Transparent);
     jo_sprite_add_tga("18","CHP.TGA",JO_COLOR_Transparent);
-    testtri = tridef((vec3){toFIXED(0),toFIXED(-50),toFIXED(0)},(vec3){toFIXED(50),toFIXED(0),toFIXED(0)},(vec3){toFIXED(0),toFIXED(0),toFIXED(50)});
+    jo_sprite_add_tga("19","EYE.TGA",JO_COLOR_Transparent);
+    jo_sprite_add_tga("20","RG0.TGA",JO_COLOR_Transparent);
+    jo_sprite_add_tga("21","RG1.TGA",JO_COLOR_Transparent);
+    jo_sprite_add_tga("22","RG2.TGA",JO_COLOR_Transparent);
+    jo_sprite_add_tga("23","RG3.TGA",JO_COLOR_Transparent);
+
+    testtri = tridef((vec3){toFIXED(0),toFIXED(-20),toFIXED(0)},(vec3){toFIXED(20),toFIXED(0),toFIXED(0)},(vec3){toFIXED(0),toFIXED(0),toFIXED(20)});
     trimesh = coltri2mesh(&testtri);
 
     jo_set_tga_palette_handling(my_tga_palette_handling);    //jo_set_tga_palette_handling(&image_pal);
@@ -316,3 +352,5 @@ void			jo_main(void)
 	jo_core_add_callback(my_draw);
 	jo_core_run();
 }
+
+//5 is width/height of the orb so 10 for entire radius.
