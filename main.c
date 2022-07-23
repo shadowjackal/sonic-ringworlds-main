@@ -56,7 +56,7 @@ FIXED livec[XYZ];
 
 
 typedef struct playerobject {
-    FIXED x,y,z;
+    vec3 pos;
     int state;
     ANGLE yrot;
     vec3ang orientation;
@@ -97,32 +97,32 @@ void                my_gamepad(void)
     switch (jo_get_input_direction_pressed(0))
     {
     case LEFT: 
-    sonic.x -= toFIXED(2); 
+    sonic.pos.x -= toFIXED(2); 
     break;
     case RIGHT: 
-    sonic.x += toFIXED(2); 
+    sonic.pos.x += toFIXED(2); 
     break;
     case UP: 
-    sonic.z += toFIXED(2); 
+    sonic.pos.z += toFIXED(2); 
     break;
     case DOWN: 
-    sonic.z -= toFIXED(2); 
+    sonic.pos.z -= toFIXED(2); 
     break;
     case UP_LEFT:  
-    sonic.x -= toFIXED(2); 
-    sonic.z += toFIXED(2);  
+    sonic.pos.x -= toFIXED(2); 
+    sonic.pos.z += toFIXED(2);  
     break;
     case UP_RIGHT:  
-    sonic.x += toFIXED(2); 
-    sonic.z += toFIXED(2); 
+    sonic.pos.x += toFIXED(2); 
+    sonic.pos.z += toFIXED(2); 
     break;
     case DOWN_LEFT: 
-    sonic.x -= toFIXED(2); 
-    sonic.z -= toFIXED(2); 
+    sonic.pos.x -= toFIXED(2); 
+    sonic.pos.z -= toFIXED(2); 
     break;
     case DOWN_RIGHT:  
-    sonic.x += toFIXED(2); 
-    sonic.z -= toFIXED(2); 
+    sonic.pos.x += toFIXED(2); 
+    sonic.pos.z -= toFIXED(2); 
     break;
     case NONE: break;
     }
@@ -140,12 +140,12 @@ void                my_gamepad(void)
         zyaw += toFIXED(3);
 
     if (jo_is_input_key_down(0, JO_KEY_A))
-        sonic.y -= toFIXED(1);
+        sonic.pos.y -= toFIXED(1);
     if (jo_is_input_key_down(0, JO_KEY_B))
-        sonic.y += toFIXED(1);
+        sonic.pos.y += toFIXED(1);
 
     if(jump) {
-        sonic.y += 1;
+        sonic.pos.y += 1;
     }
 }
 
@@ -159,17 +159,17 @@ void			    my_draw(void)
     cam.viewpoint_pos.y = toFIXED(-35);
     vec3 campos;
     vec3 target;
-    target.x = sonic.x;
-    target.y = sonic.y;
-    target.z = sonic.z;
+    target.x = sonic.pos.x;
+    target.y = sonic.pos.y;
+    target.z = sonic.pos.z;
     vec3orbit(&campos,&target,toFIXED(60),rotation);
 
     cam.viewpoint_pos.x = campos.x;
     cam.viewpoint_pos.z = campos.z;
 
-    cam.target_pos.x = sonic.x;
-    cam.target_pos.y = sonic.y;
-    cam.target_pos.z = sonic.z;
+    cam.target_pos.x = sonic.pos.x;
+    cam.target_pos.y = sonic.pos.y;
+    cam.target_pos.z = sonic.pos.z;
 
     fframe += 0.25;
     if(fframe >= 80) fframe = 0;
@@ -182,16 +182,16 @@ void			    my_draw(void)
     floor.normal.asArray[2] = toFIXED(0);
     floor.distance = 0;
     Sphere camsphere;
-    camsphere.position.asArray[0] = sonic.x;
-    camsphere.position.asArray[1] = sonic.y;
-    camsphere.position.asArray[2] = sonic.z;
+    camsphere.position.asArray[0] = sonic.pos.x;
+    camsphere.position.asArray[1] = sonic.pos.y;
+    camsphere.position.asArray[2] = sonic.pos.z;
     camsphere.radius = toFIXED(9);
 
     sonic.orientation = dirtoeuler(&floor.normal);
 
-    slPrintFX((sonic.x),slLocate(0,0));
-    slPrintFX((sonic.y),slLocate(0,1));
-    slPrintFX((sonic.z),slLocate(0,2));
+    slPrintFX((sonic.pos.x),slLocate(0,0));
+    slPrintFX((sonic.pos.y),slLocate(0,1));
+    slPrintFX((sonic.pos.z),slLocate(0,2));
     if(TriangleSphere(&testtri, &camsphere)) jo_printf(0,4,"BOOL : True"); else jo_printf(0,4,"BOOL : False");
     b += (1);
     jo_3d_camera_look_at(&cam);
@@ -199,18 +199,17 @@ void			    my_draw(void)
 
     FIXED pos[][XYZS] =
     {    
-        {orb1.pos.x,orb1.pos.y,orb1.pos.z,toFIXED(0.20f)},   
+        {0,0,0,toFIXED(0.15f)},   
     };
     
     SPR_ATTR attr[] =
     {
-        SPR_ATTRIBUTE(18, 0, No_Gouraud, CL32KRGB | ECenb | SPenb, sprNoflip | FUNC_Sprite | _ZmCC),
+        SPR_ATTRIBUTE(18, 0, No_Gouraud, CL32KRGB | ECdis | SPenb, sprNoflip | FUNC_Sprite | _ZmCC),
     };
-
 
     slPushMatrix();
     {
-        slTranslate(sonic.x, sonic.y, sonic.z);
+        slTranslate(sonic.pos.x, sonic.pos.y, sonic.pos.z);
         slScale(toFIXED(1),toFIXED(1),toFIXED(1));
         slRotX(sonic.orientation.asArray[0]);
         slRotY(sonic.orientation.asArray[1]);
@@ -219,10 +218,12 @@ void			    my_draw(void)
     }
     slPopMatrix();
 
+
+
     slPushMatrix();
     {
+        slTranslate(orb1.pos.x,orb1.pos.y,orb1.pos.z);
         slPutSprite((FIXED *)pos[0], (SPR_ATTR *)(&(attr[0].texno)), 0);
-        slTranslate(orb1.pos.x,orb1.pos.y+toFIXED(-5),orb1.pos.z);
         slPutPolygonX(&orbinautmodel,livec);
     }
     slPopMatrix();
@@ -256,7 +257,9 @@ void			    my_draw(void)
         jo_background_3d_plane_b_draw(true);
     }
     jo_3d_pop_matrix();
+
 }
+
 
 jo_palette          *my_tga_palette_handling(void)
 {
@@ -282,9 +285,9 @@ void			jo_main(void)
     cam.viewpoint_pos.x = 0;
     cam.viewpoint_pos.y = toFIXED(-20);
     cam.viewpoint_pos.z = 0;
-    cam.target_pos.x = sonic.x;
-    cam.target_pos.y = sonic.y+toFIXED(-12);
-    cam.target_pos.z = sonic.z;
+    cam.target_pos.x = sonic.pos.x;
+    cam.target_pos.y = sonic.pos.y+toFIXED(-12);
+    cam.target_pos.z = sonic.pos.z;
     //slDynamicFrame(1);
     //ssvlist0 = jo_3d_create_mesh(ssv_quad_count("CBE.SSV"));
     jo_printf(0,0,"Loading : 0 %%");
@@ -296,13 +299,13 @@ void			jo_main(void)
     orbinautmodel.data.attbl[i].sort |= SORT_MAX; 
     }
     orb1.pos.x = toFIXED(-10);
-    orb1.pos.y = toFIXED(-5);
+    orb1.pos.y = toFIXED(-10);
     orb1.pos.z = toFIXED(-10);
     livec[0] = toFIXED(-0.5f);
     livec[1] = toFIXED(0.5f);
     livec[2] = toFIXED(0);
 
-    sonic.y = toFIXED(-11);
+    sonic.pos.y = toFIXED(-11);
     jo_sprite_add_tga("00", "S01.TGA", JO_COLOR_Transparent);
     jo_sprite_add_tga("01", "S02.TGA", JO_COLOR_Transparent);
     jo_sprite_add_tga("02", "S03.TGA", JO_COLOR_Transparent);
