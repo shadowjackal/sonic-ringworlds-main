@@ -1,2 +1,2 @@
 This is the order of materials/textures, use these when loading textures into JO_ENGINE or SGL
-Material : Material.001 | Texture : joengine-master/Projects/sonic-ringworlds-main/cd/EYE.TGA
+Material : Material.001 | Texture : Downloads/Saturn - Sonic Jam - Sonic World/83.png

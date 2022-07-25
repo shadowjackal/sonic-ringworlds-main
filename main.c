@@ -46,6 +46,7 @@ FIXED time;
 jklmesh player;
 jklmesh player0;
 jklmesh orbinautmodel;
+jklmesh lvlmodel;
 
 int frame;
 int ja = 0;
@@ -60,6 +61,7 @@ typedef struct playerobject {
     VECTOR spd; //speed
     Sphere col;
     int state; // action state (walking, runnning, holding item, etc)
+    bool gnd;
     ANGLE rot; // where sonic is facing relative to the ground
     ROTATE orientation; // which way his body is facing
 } playerobject;
@@ -213,7 +215,7 @@ void                my_gamepad(void)
     }
 }
 
-
+Plane gplane;
 
 void			    my_draw(void)
 {
@@ -228,10 +230,19 @@ void			    my_draw(void)
     sonic.col.pos[0] = sonic.pos[0];
     sonic.col.pos[1] = sonic.pos[1];
     sonic.col.pos[2] = sonic.pos[2];
+<<<<<<< Updated upstream
     //vec3orbit(campos,target,toFIXED(60),rotation);
     
     //cam.viewpoint_pos.x = campos[0];
     //cam.viewpoint_pos.z = campos[2];
+=======
+    vec3orbit(campos,target,toFIXED(60),rotation);
+    Sphere undersonc;   
+
+
+    cam.viewpoint_pos.x = campos[0];
+    cam.viewpoint_pos.z = campos[2];
+>>>>>>> Stashed changes
     cam.target_pos.x = sonic.pos[0];
     cam.target_pos.y = sonic.pos[1]+toFIXED(-12);
     cam.target_pos.z = sonic.pos[2];
@@ -261,6 +272,15 @@ void			    my_draw(void)
 
 
     Collision_SphereColResolve(&sonic.col,&colmesh);
+    Collision_SpherePlaneResolve(&sonic.col,&gplane);
+
+    undersonc.pos[0] = sonic.pos[0];
+    undersonc.pos[1] = sonic.pos[1]+toFIXED(12);
+    undersonc.pos[2] = sonic.pos[2];
+    undersonc.radius = toFIXED(6);
+
+    if(Collision_SphereCol_bool(&undersonc, &colmesh) || Collision_SpherePlane_bool(&undersonc,&gplane)) sonic.gnd = true; else sonic.gnd = false;
+    if(sonic.gnd == false)sonic.col.pos[1] += toFIXED(1);
     sonic.pos[0] = sonic.col.pos[0];
     sonic.pos[1] = sonic.col.pos[1];
     sonic.pos[2] = sonic.col.pos[2];
@@ -310,6 +330,8 @@ void			    my_draw(void)
 
     slPushMatrix();
     {
+        slTranslate(0,0,0);
+        slPutPolygonX(&lvlmodel,livec);
         slPutPolygonX(&trimesh,(VECTOR){0,0,0});
         //slPutPolygonX(&orbinautmodel,livec);
     }
@@ -319,7 +341,7 @@ void			    my_draw(void)
     jo_3d_push_matrix();
     {
         slTranslate(0, toFIXED(0), 0);
-        slScale(toFIXED(0.75),toFIXED(0.75),toFIXED(0.75));
+       // slScale(toFIXED(0.75),toFIXED(0.75),toFIXED(0.75));
         slRotX(DEGtoANG(90));
         slRotY(DEGtoANG(0));
         slRotZ(DEGtoANG(0));
@@ -377,6 +399,8 @@ void			jo_main(void)
     player = ssv_load("OBJ.SSV",0,true,false);
     player0 = ssv_load("BAL.SSV",14,true,false);
     orbinautmodel = ssv_load("ORB.SSV",19,false,false);
+    lvlmodel = ssv_load("LV0.SSV",20,true,false);
+
     for(int i = 0; i < orbinautmodel.data.nbPolygon; i++) {
     orbinautmodel.data.attbl[i].sort |= SORT_MAX; 
     }
@@ -386,6 +410,10 @@ void			jo_main(void)
     livec[0] = toFIXED(-0.5f);
     livec[1] = toFIXED(0.5f);
     livec[2] = toFIXED(0);
+    gplane.normal[0] = 0;
+    gplane.normal[1] = -toFIXED(1);
+    gplane.normal[2] = 0;
+    gplane.distance = 0;
 
     sonic.pos[1] = toFIXED(-11);
     jo_sprite_add_tga("00", "S01.TGA", JO_COLOR_Transparent);
@@ -408,17 +436,16 @@ void			jo_main(void)
     jo_sprite_add_tga("17", "BL3.TGA", JO_COLOR_Transparent);
     jo_sprite_add_tga("18","CHP.TGA",JO_COLOR_Transparent);
     jo_sprite_add_tga("19","EYE.TGA",JO_COLOR_Transparent);
-    jo_sprite_add_tga("20","RG0.TGA",JO_COLOR_Transparent);
-    jo_sprite_add_tga("21","RG1.TGA",JO_COLOR_Transparent);
-    jo_sprite_add_tga("22","RG2.TGA",JO_COLOR_Transparent);
-    jo_sprite_add_tga("23","RG3.TGA",JO_COLOR_Transparent);
+    jo_sprite_add_tga("20","TIL.TGA",JO_COLOR_Transparent);
+    jo_sprite_add_tga("21","RG0.TGA",JO_COLOR_Transparent);
+    jo_sprite_add_tga("22","RG1.TGA",JO_COLOR_Transparent);
+    jo_sprite_add_tga("23","RG2.TGA",JO_COLOR_Transparent);
+    jo_sprite_add_tga("24","RG3.TGA",JO_COLOR_Transparent);
 
-    colmesh.points = jo_malloc(sizeof(POINT) * 3);
-    tridef((POINT){toFIXED(0),toFIXED(-20),toFIXED(0)},(POINT){toFIXED(20),toFIXED(0),toFIXED(0)},(POINT){toFIXED(-20),toFIXED(0),toFIXED(-20)},&colmesh.points[0]);
-    colmesh.num_tris = 1;
+    mesh2coltri(&lvlmodel,&colmesh);
     trimesh = coltri2mesh(&colmesh.points[0]);
 //
-    sonic.col.radius = toFIXED(12);
+    sonic.col.radius = toFIXED(11);
     jo_set_tga_palette_handling(my_tga_palette_handling);    //jo_set_tga_palette_handling(&image_pal);
     jo_img_8bits    img;
 

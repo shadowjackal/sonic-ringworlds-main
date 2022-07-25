@@ -1,4 +1,5 @@
 #include <jo/jo.h>
+#include "ssv.h"
 #include "newmath.h"
 #include "newcol.h"
 
@@ -46,6 +47,18 @@ void    tridef(const POINT p1, const POINT p2, const POINT p3, POINT* out) {
 }
 
 
+void   mesh2coltri(jklmesh *m, Collision *out) {
+    out->points = jo_malloc((sizeof(POINT) * 3) * m->data.nbPolygon*2);
+    out->num_tris = 40;
+    int offset = 0;
+    for(int i = 0; i < m->data.nbPolygon; i++) {
+    tridef(m->data.pntbl[m->data.pltbl[i].Vertices[0]],m->data.pntbl[m->data.pltbl[i].Vertices[1]],m->data.pntbl[m->data.pltbl[i].Vertices[2]],&out->points[offset]);
+    tridef(m->data.pntbl[m->data.pltbl[i].Vertices[2]],m->data.pntbl[m->data.pltbl[i].Vertices[3]],m->data.pntbl[m->data.pltbl[i].Vertices[0]],&out->points[offset+3]);
+    offset += 6;
+    }
+    
+}
+
 static inline void plane_point_closest_pt(POINT *triangle, VECTOR P, VECTOR out) {
     VECTOR plane_normal;
     slNormalVector(triangle[0], triangle[1], triangle[2], plane_normal);
@@ -56,6 +69,16 @@ static inline void plane_point_closest_pt(POINT *triangle, VECTOR P, VECTOR out)
     vec_mul_scalar(plane_normal, point_plane_dist, out);
     vec_sub(P, out, out);
 }
+
+static inline void plane_point_closest_pt_plane(Plane *plane, VECTOR P, VECTOR out) {
+    
+
+    FIXED point_plane_dist = slInnerProduct(plane->normal, P) - plane->distance;
+    
+    vec_mul_scalar(plane->normal, point_plane_dist, out);
+    vec_sub(P, out, out);
+}
+
 
 static inline bool tri_point_intersects(POINT *triangle, VECTOR P) {
     VECTOR a, b, c;
@@ -177,4 +200,68 @@ bool Collision_SphereColResolve(Sphere *sphere, Collision *col) {
     }
     
     return is_hit;
+}
+
+bool Collision_SpherePlaneResolve(Sphere *sphere, Plane *plane) {
+    bool is_hit = false;
+    VECTOR closest_pt;
+    plane_point_closest_pt_plane(plane,sphere->pos,closest_pt);
+
+    VECTOR delta;
+    vec_sub(sphere->pos, closest_pt, delta);
+
+    FIXED delta_dist = slSquartFX(dotvec3n(delta, delta));
+
+            if(delta_dist < (sphere->radius >> 4)) {
+            vec_normalize(delta);
+            
+            VECTOR push_back;
+            vec_mul_scalar(delta, sphere->radius - (delta_dist << 4), push_back);
+            
+            vec_add(sphere->pos, push_back, sphere->pos);
+            is_hit = true;
+        }
+        
+    return false;
+}
+
+
+bool Collision_SphereCol_bool(Sphere *sphere, Collision *col) {
+    bool is_hit = false;
+    
+    // Resolve collision against each triangle
+    for(int i = 0; i < col->num_tris; i++) {
+        // Get closest point on tri to the sphere centre
+        VECTOR closest_pt;
+        tri_point_closest_pt(sphere->pos, &col->points[i*3], closest_pt);
+        
+        VECTOR delta;
+        vec_sub(sphere->pos, closest_pt, delta);
+        
+        FIXED delta_dist = slSquartFX(dotvec3n(delta, delta));
+        
+        if(delta_dist < (sphere->radius >> 4)) {
+            is_hit = true;
+        }
+    }
+    
+    return is_hit;
+}
+
+bool Collision_SpherePlane_bool(Sphere *sphere, Plane *plane) {
+    bool is_hit = false;
+    VECTOR closest_pt;
+    plane_point_closest_pt_plane(plane,sphere->pos,closest_pt);
+
+    VECTOR delta;
+    vec_sub(sphere->pos, closest_pt, delta);
+
+    FIXED delta_dist = slSquartFX(dotvec3n(delta, delta));
+
+            if(delta_dist < (sphere->radius >> 4)) {
+            
+            is_hit = true;
+        }
+        
+    return false;
 }
