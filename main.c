@@ -92,6 +92,8 @@ float fframe =0;
 int b = 0;
 ANGLE rotation;
 bool jump;
+FIXED camera_speed_x;
+FIXED camera_speed_z;
 
 void                vec3orbit(FIXED *position, FIXED *target, FIXED distance, ANGLE angle) {
         position[0] = target[0] + slMulFX(slCos(angle),distance);
@@ -189,10 +191,10 @@ void                my_gamepad(void)
         break;
     }
     if (jo_is_input_key_pressed(0, JO_KEY_L)) {
-        rotation -= 400;
+        rotation += 400;
     }
     if (jo_is_input_key_pressed(0, JO_KEY_R)) {
-        rotation += 400;
+        rotation -= 400;
     }
     if (jo_is_input_key_pressed(0, JO_KEY_X))
         zpitch += toFIXED(3);
@@ -217,22 +219,46 @@ void			    my_draw(void)
 {
     my_gamepad();
  
-    cam.viewpoint_pos.y = toFIXED(-35);
-    FIXED campos[XYZ];
+    cam.viewpoint_pos.y = toFIXED(-55);
+    /*FIXED campos[XYZ];
     FIXED target[XYZ];
     target[0] = sonic.pos[0];
     target[1] = sonic.pos[1];
-    target[2] = sonic.pos[2];
+    target[2] = sonic.pos[2];*/
     sonic.col.pos[0] = sonic.pos[0];
     sonic.col.pos[1] = sonic.pos[1];
     sonic.col.pos[2] = sonic.pos[2];
-    vec3orbit(campos,target,toFIXED(60),rotation);
-
-    cam.viewpoint_pos.x = campos[0];
-    cam.viewpoint_pos.z = campos[2];
+    //vec3orbit(campos,target,toFIXED(60),rotation);
+    
+    //cam.viewpoint_pos.x = campos[0];
+    //cam.viewpoint_pos.z = campos[2];
     cam.target_pos.x = sonic.pos[0];
     cam.target_pos.y = sonic.pos[1]+toFIXED(-12);
     cam.target_pos.z = sonic.pos[2];
+
+    //using chasing camera that always focuses on player
+    if ( (camera_speed_x != 0) && (camera_speed_z!=0) )
+    {
+        cam.viewpoint_pos.x += camera_speed_x;
+        cam.viewpoint_pos.z += camera_speed_z;
+        //update camera rotation change due to chasing
+        rotation = slAtan(-(cam.target_pos.x - cam.viewpoint_pos.x),-(cam.target_pos.z - cam.viewpoint_pos.z));
+    }
+    //updating speed
+    FIXED dist_sq = (slMulFX((cam.target_pos.x - cam.viewpoint_pos.x),(cam.target_pos.x - cam.viewpoint_pos.x))+
+                     slMulFX((cam.target_pos.z - cam.viewpoint_pos.z),(cam.target_pos.z - cam.viewpoint_pos.z))); 
+    if (dist_sq > toFIXED(2500))
+    {
+        //move camera closer
+        camera_speed_x = slMulFX((cam.target_pos.x - cam.viewpoint_pos.x),toFIXED(0.025));
+        camera_speed_z = slMulFX((cam.target_pos.z - cam.viewpoint_pos.z),toFIXED(0.025));
+    }
+    else
+    {
+        camera_speed_x = 0;
+        camera_speed_z = 0;
+    }
+
 
     Collision_SphereColResolve(&sonic.col,&colmesh);
     sonic.pos[0] = sonic.col.pos[0];
@@ -336,12 +362,14 @@ void			jo_main(void)
     
     jo_3d_camera_init(&cam);
 
-    cam.viewpoint_pos.x = 0;
-    cam.viewpoint_pos.y = toFIXED(-20);
-    cam.viewpoint_pos.z = 0;
+    cam.viewpoint_pos.x = sonic.pos[0]+toFIXED(50);
+    cam.viewpoint_pos.y = toFIXED(-50);
+    cam.viewpoint_pos.z = sonic.pos[2];
     cam.target_pos.x = sonic.pos[0];
     cam.target_pos.y = sonic.pos[1]+toFIXED(-12);
     cam.target_pos.z = sonic.pos[2];
+    camera_speed_x = 0;
+    camera_speed_z = 0;
     //slDynamicFrame(1);
     //ssvlist0 = jo_3d_create_mesh(ssv_quad_count("CBE.SSV"));
     jo_printf(0,0,"Loading : 0 %%");
