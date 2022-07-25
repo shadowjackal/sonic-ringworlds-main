@@ -10,6 +10,7 @@
         "SL_DEF.H": "cpp",
         "type_traits": "c",
         "numbers": "c",
-        "random": "c"
+        "random": "c",
+        "newmath.h": "c"
     }
 }
