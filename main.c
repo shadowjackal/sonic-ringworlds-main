@@ -101,37 +101,92 @@ void                vec3orbit(FIXED *position, FIXED *target, FIXED distance, AN
 
 void                my_gamepad(void)
 {
+    FIXED tmp_sin;
+    FIXED tmp_cos;
     switch (jo_get_input_direction_pressed(0))
     {
     case LEFT: 
-    sonic.pos[0] -= toFIXED(2); 
+        tmp_sin = slSin(rotation);
+        tmp_cos = slCos(rotation);
+        sonic.pos[0] += tmp_sin; 
+        sonic.pos[0] += tmp_sin;
+        sonic.pos[2] -= tmp_cos;
+        sonic.pos[2] -= tmp_cos; 
     break;
-    case RIGHT: 
-    sonic.pos[0] += toFIXED(2); 
+    case RIGHT:
+        tmp_sin = slSin(rotation);
+        tmp_cos = slCos(rotation);
+        sonic.pos[0] -= tmp_sin;
+        sonic.pos[0] -= tmp_sin;
+        sonic.pos[2] += tmp_cos;
+        sonic.pos[2] += tmp_cos;
     break;
     case UP: 
-    sonic.pos[2] += toFIXED(2); 
+        tmp_sin = slSin(rotation);
+        tmp_cos = slCos(rotation);
+        sonic.pos[0] -= tmp_cos;
+        sonic.pos[0] -= tmp_cos;
+        sonic.pos[2] -= tmp_sin;
+        sonic.pos[2] -= tmp_sin;
     break;
     case DOWN: 
-    sonic.pos[2] -= toFIXED(2); 
+        tmp_sin = slSin(rotation);
+        tmp_cos = slCos(rotation);
+        sonic.pos[0] += tmp_cos; 
+        sonic.pos[0] += tmp_cos;
+        sonic.pos[2] += tmp_sin;
+        sonic.pos[2] += tmp_sin; 
     break;
     case UP_LEFT:  
-    sonic.pos[0] -= toFIXED(2); 
-    sonic.pos[2] += toFIXED(2);  
+        tmp_sin = slSin(rotation);
+        tmp_cos = slCos(rotation);
+        sonic.pos[0] += tmp_sin; 
+        sonic.pos[0] += tmp_sin;
+        sonic.pos[0] -= tmp_cos;
+        sonic.pos[0] -= tmp_cos;
+        sonic.pos[2] -= tmp_cos;
+        sonic.pos[2] -= tmp_cos; 
+        sonic.pos[2] -= tmp_sin;
+        sonic.pos[2] -= tmp_sin;
     break;
     case UP_RIGHT:  
-    sonic.pos[0] += toFIXED(2); 
-    sonic.pos[2] += toFIXED(2); 
+        tmp_sin = slSin(rotation);
+        tmp_cos = slCos(rotation);
+        sonic.pos[0] -= tmp_sin;
+        sonic.pos[0] -= tmp_sin;
+        sonic.pos[0] -= tmp_cos;
+        sonic.pos[0] -= tmp_cos;
+        sonic.pos[2] += tmp_cos;
+        sonic.pos[2] += tmp_cos;
+        sonic.pos[2] -= tmp_sin;
+        sonic.pos[2] -= tmp_sin;
     break;
     case DOWN_LEFT: 
-    sonic.pos[0] -= toFIXED(2); 
-    sonic.pos[2] -= toFIXED(2); 
+        tmp_sin = slSin(rotation);
+        tmp_cos = slCos(rotation);
+        sonic.pos[0] += tmp_sin; 
+        sonic.pos[0] += tmp_sin;
+        sonic.pos[0] += tmp_cos; 
+        sonic.pos[0] += tmp_cos;
+        sonic.pos[2] -= tmp_cos;
+        sonic.pos[2] -= tmp_cos; 
+        sonic.pos[2] += tmp_sin;
+        sonic.pos[2] += tmp_sin;
     break;
     case DOWN_RIGHT:  
-    sonic.pos[0] += toFIXED(2); 
-    sonic.pos[2] -= toFIXED(2); 
+        tmp_sin = slSin(rotation);
+        tmp_cos = slCos(rotation);
+        sonic.pos[0] -= tmp_sin;
+        sonic.pos[0] -= tmp_sin;
+        sonic.pos[0] += tmp_cos; 
+        sonic.pos[0] += tmp_cos;
+        sonic.pos[2] += tmp_cos;
+        sonic.pos[2] += tmp_cos;
+        sonic.pos[2] += tmp_sin;
+        sonic.pos[2] += tmp_sin; 
     break;
-    case NONE: break;
+    case NONE:
+        break;
     }
     if (jo_is_input_key_pressed(0, JO_KEY_L)) {
         rotation -= 400;
