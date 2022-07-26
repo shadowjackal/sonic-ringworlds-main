@@ -234,17 +234,11 @@ void			    my_draw(void)
     Sphere undersonc;   
 
 
-    cam.viewpoint_pos.x = campos[0];
-    cam.viewpoint_pos.z = campos[2];
     cam.target_pos.x = sonic.pos[0];
     cam.target_pos.y = sonic.pos[1]+toFIXED(-12);
     cam.target_pos.z = sonic.pos[2];
 
-    sonic.col.pos[0] = sonic.pos[0];
-    sonic.col.pos[1] = sonic.pos[1];
-    sonic.col.pos[2] = sonic.pos[2];
-
-        //using chasing camera that always focuses on player
+    //using chasing camera that always focuses on player
     if ( (camera_speed_x != 0) && (camera_speed_z!=0) )
     {
         cam.viewpoint_pos.x += camera_speed_x;
@@ -380,9 +374,12 @@ void			jo_main(void)
     
     jo_3d_camera_init(&cam);
 
-    cam.viewpoint_pos.x = 0;
+    cam.viewpoint_pos.x = toFIXED(-20);
     cam.viewpoint_pos.y = toFIXED(-20);
-    cam.viewpoint_pos.z = 0;
+    cam.viewpoint_pos.z = toFIXED(-20);
+    sonic.pos[0] = toFIXED(5);
+    sonic.pos[1] = toFIXED(-11);
+    sonic.pos[2] = toFIXED(0);
     cam.target_pos.x = sonic.pos[0];
     cam.target_pos.y = sonic.pos[1]+toFIXED(-12);
     cam.target_pos.z = sonic.pos[2];
