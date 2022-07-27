@@ -1,0 +1,7 @@
+/cd/*.bin
+/*.o
+/*.bin
+/*.cue
+/*.elf
+/*.iso
+/*.map
