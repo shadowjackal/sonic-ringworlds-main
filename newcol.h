@@ -23,5 +23,6 @@ bool Collision_SphereColResolve(Sphere *sphere, Collision *col);
 bool Collision_SpherePlaneResolve(Sphere *sphere, Plane *plane);
 bool Collision_SphereCol_bool(Sphere *sphere, Collision *col);
 bool Collision_SpherePlane_bool(Sphere *sphere, Plane *plane);
+bool Collision_SphereCol_bool_special(Sphere *sphere, Collision *col);
 
 #endif

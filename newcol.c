@@ -3,6 +3,8 @@
 #include "newmath.h"
 #include "newcol.h"
 
+int lasthitid = -1;
+
 PDATA   coltri2mesh(POINT *t) {
     PDATA retdata;
     retdata.nbPoint = 4;
@@ -49,14 +51,13 @@ void    tridef(const POINT p1, const POINT p2, const POINT p3, POINT* out) {
 
 void   mesh2coltri(jklmesh *m, Collision *out) {
     out->points = jo_malloc((sizeof(POINT) * 3) * m->data.nbPolygon*2);
-    out->num_tris = 40;
+    out->num_tris = m->data.nbPolygon*2;
     int offset = 0;
     for(int i = 0; i < m->data.nbPolygon; i++) {
     tridef(m->data.pntbl[m->data.pltbl[i].Vertices[0]],m->data.pntbl[m->data.pltbl[i].Vertices[1]],m->data.pntbl[m->data.pltbl[i].Vertices[2]],&out->points[offset]);
     tridef(m->data.pntbl[m->data.pltbl[i].Vertices[2]],m->data.pntbl[m->data.pltbl[i].Vertices[3]],m->data.pntbl[m->data.pltbl[i].Vertices[0]],&out->points[offset+3]);
     offset += 6;
     }
-    
 }
 
 static inline void plane_point_closest_pt(POINT *triangle, VECTOR P, VECTOR out) {
@@ -176,10 +177,12 @@ static inline void tri_point_closest_pt(POINT P, POINT *triangle, VECTOR out) {
 
 bool Collision_SphereColResolve(Sphere *sphere, Collision *col) {
     bool is_hit = false;
+    int hitcnt = 0;
     
     // Resolve collision against each triangle
     for(int i = 0; i < col->num_tris; i++) {
         // Get closest point on tri to the sphere centre
+        if(manhattandistance(sphere->pos,col->points[i*3]) < toFIXED(150) || manhattandistance(sphere->pos,col->points[(i+1)*3]) < toFIXED(150) ||  manhattandistance(sphere->pos,col->points[(i+2)*3]) < toFIXED(150)) {
         VECTOR closest_pt;
         tri_point_closest_pt(sphere->pos, &col->points[i*3], closest_pt);
         
@@ -196,9 +199,12 @@ bool Collision_SphereColResolve(Sphere *sphere, Collision *col) {
             
             vec_add(sphere->pos, push_back, sphere->pos);
             is_hit = true;
-        }
+            hitcnt += 1;
+        }}
+
     }
     
+    if(is_hit == false) lasthitid = -1;
     return is_hit;
 }
 
@@ -231,6 +237,7 @@ bool Collision_SphereCol_bool(Sphere *sphere, Collision *col) {
     
     // Resolve collision against each triangle
     for(int i = 0; i < col->num_tris; i++) {
+        if(manhattandistance(sphere->pos,col->points[i*3]) < toFIXED(80) || manhattandistance(sphere->pos,col->points[(i+1)*3]) < toFIXED(80) ||  manhattandistance(sphere->pos,col->points[(i+2)*3]) < toFIXED(80)) {
         // Get closest point on tri to the sphere centre
         VECTOR closest_pt;
         tri_point_closest_pt(sphere->pos, &col->points[i*3], closest_pt);
@@ -243,7 +250,49 @@ bool Collision_SphereCol_bool(Sphere *sphere, Collision *col) {
         if(delta_dist < (sphere->radius >> 4)) {
             is_hit = true;
         }
-    }
+        if(is_hit == true) return is_hit;
+    }}
+    
+    return is_hit;
+}
+
+
+bool Collision_SphereCol_bool_special(Sphere *sphere, Collision *col) {
+    bool is_hit = false;
+
+  if(lasthitid != -1) {
+        // Get closest point on tri to the sphere centre
+        VECTOR closest_pt;
+        tri_point_closest_pt(sphere->pos, &col->points[lasthitid], closest_pt);
+        
+        VECTOR delta;
+        vec_sub(sphere->pos, closest_pt, delta);
+        
+        FIXED delta_dist = slSquartFX(dotvec3n(delta, delta));
+        
+        if(delta_dist < (sphere->radius >> 4)) {
+            is_hit = true;
+        }
+        if(is_hit == true) return is_hit;
+    
+    
+    // Resolve collision against each triangle
+    for(int i = 0; i < col->num_tris; i++) {
+        if(manhattandistance(sphere->pos,col->points[i*3]) < toFIXED(80) || manhattandistance(sphere->pos,col->points[(i+1)*3]) < toFIXED(80) ||  manhattandistance(sphere->pos,col->points[(i+2)*3]) < toFIXED(80)) {
+        // Get closest point on tri to the sphere centre
+        VECTOR closest_pt;
+        tri_point_closest_pt(sphere->pos, &col->points[i*3], closest_pt);
+        
+        VECTOR delta;
+        vec_sub(sphere->pos, closest_pt, delta);
+        
+        FIXED delta_dist = slSquartFX(dotvec3n(delta, delta));
+        
+        if(delta_dist < (sphere->radius >> 4)) {
+            is_hit = true;
+        }
+        if(is_hit == true) return is_hit;
+    }}}
     
     return is_hit;
 }

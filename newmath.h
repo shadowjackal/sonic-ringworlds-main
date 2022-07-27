@@ -55,6 +55,15 @@ static inline FIXED vec_length(VECTOR vec) {
     return slSquartFX(slInnerProduct(vec, vec));
 }
 
+static inline FIXED manhattandistance2d(VECTOR vec, VECTOR vec2) {
+    return abs(vec[0]-vec2[0]) + abs(vec[2]-vec2[2]);
+}
+
+static inline FIXED manhattandistance(VECTOR vec, VECTOR vec2) {
+    return abs(vec[0]-vec2[0]) + abs(vec[1]-vec2[1]) + abs(vec[2]-vec2[2]);
+}
+
+
 static inline ANGLE vec_angle(VECTOR A, VECTOR B) {
     return Arccos(slDivFX(slMulFX(vec_length(A), vec_length(B)), slInnerProduct(A, B)));
 }

@@ -1,6 +1,4 @@
 make all --print-data-base --no-builtin-variables --no-builtin-rules --question
-make: *** No rule to make target 'newcol.o', needed by 'game.elf'.  Stop.
-
 # GNU Make 4.3
 # Built for x86_64-pc-linux-gnu
 # Copyright (C) 1988-2020 Free Software Foundation, Inc.
@@ -8,7 +6,7 @@ make: *** No rule to make target 'newcol.o', needed by 'game.elf'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Mon Jul 25 11:23:41 2022
+# Make data base, printed on Wed Jul 27 17:10:40 2022
 
 # Variables
 
@@ -24,8 +22,8 @@ SSH_AGENT_LAUNCHER = gnome-keyring
 ASSETS_DIR = ./cd
 # environment
 GJS_DEBUG_OUTPUT = stderr
-# makefile (from 'makefile', line 10)
-JO_GLOBAL_MEMORY_SIZE_FOR_MALLOC = 262144
+# makefile (from 'makefile', line 11)
+JO_GLOBAL_MEMORY_SIZE_FOR_MALLOC = 65536
 # environment
 VSCODE_CWD = /home/ash
 # makefile (from '../../Compiler/COMMON/jo_engine_makefile', line 273)
@@ -49,7 +47,7 @@ PWD = /home/ash/Documents/joengine-master/Projects/sonic-ringworlds-main
 # makefile (from 'makefile', line 7)
 JO_COMPILE_WITH_EFFECTS_MODULE = 0
 # environment
-XDG_DATA_DIRS = /usr/share/ubuntu:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop
+XDG_DATA_DIRS = /usr/share/ubuntu:/home/ash/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop
 # automatic
 ^D = $(patsubst %/,%,$(dir $^))
 # automatic
@@ -59,9 +57,11 @@ VSCODE_CODE_CACHE_PATH = /home/ash/.config/Code/CachedData/b06ae3b2d2dbfe28bca31
 # environment
 LANG = C
 # environment
-XAUTHORITY = /run/user/1000/.mutter-Xwaylandauth.46IPP1
+XAUTHORITY = /run/user/1000/.mutter-Xwaylandauth.N26BQ1
 # default
 .LOADED := 
+# makefile (from 'makefile', line 10)
+JO_NTSC = 1
 # default
 .INCLUDE_DIRS = /usr/local/include /usr/include /usr/include
 # makefile
@@ -69,7 +69,7 @@ MAKEFLAGS = pqrR
 # makefile
 CURDIR := /home/ash/Documents/joengine-master/Projects/sonic-ringworlds-main
 # makefile (from 'makefile', line 9)
-JO_DEBUG = 1
+JO_DEBUG = 0
 # environment
 APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = 1
 # environment
@@ -103,7 +103,7 @@ MAKEFILE_LIST := makefile ../../Compiler/COMMON/jo_engine_makefile
 # automatic
 @F = $(notdir $@)
 # environment
-VSCODE_PID = 4057
+VSCODE_PID = 14260
 # environment
 XDG_SESSION_TYPE = wayland
 # automatic
@@ -111,9 +111,9 @@ XDG_SESSION_TYPE = wayland
 # makefile (from '../../Compiler/COMMON/jo_engine_makefile', line 20)
 JO_COMPILE_USING_SGL = 1
 # makefile (from '../../Compiler/COMMON/jo_engine_makefile', line 262)
-CCFLAGS = -DJO_FRAMERATE=1 -DJO_COMPILE_USING_SGL -DJO_COMPILE_WITH_FAST_BUT_LESS_ACCURATE_MATH -DJO_COMPILE_WITH_TGA_SUPPORT -DJO_COMPILE_WITH_3D_SUPPORT -DJO_COMPILE_WITH_FS_SUPPORT -DJO_GLOBAL_MEMORY_SIZE_FOR_MALLOC=${JO_GLOBAL_MEMORY_SIZE_FOR_MALLOC} -DJO_MAX_SPRITE=255 -DJO_MAX_FILE_IN_IMAGE_PACK=32 -DJO_MAP_MAX_LAYER=8 -DJO_MAX_SPRITE_ANIM=16 -DJO_MAX_FS_BACKGROUND_JOBS=1 -DJO_DEBUG -DJO_COMPILE_WITH_PRINTF_SUPPORT -DJO_COMPILE_WITH_SPRITE_HASHTABLE -DJO_NTSC_VERSION -DJO_COMPILE_WITH_RAM_CARD_SUPPORT -DJO_COMPILE_WITH_DUAL_CPU_SUPPORT "-I$(COMPILER_DIR)/WINDOWS/sh-elf/include" -fkeep-inline-functions -W -Wall -Wshadow -Wbad-function-cast -Winline -Wcomment -Winline -Wsign-compare -Wextra -Wno-strict-aliasing -fno-common -ffast-math --param max-inline-insns-single=50 -fms-extensions -std=gnu99 -fmerge-all-constants -fno-ident -fno-unwind-tables -fno-asynchronous-unwind-tables -fomit-frame-pointer -fstrength-reduce -frerun-loop-opt -O2 -nodefaultlibs -nostdlib -fno-builtin -m2 -c -I$(JO_ENGINE_SRC_DIR) -flto -I$(SGLIDR)
+CCFLAGS = -DJO_FRAMERATE=1 -DJO_COMPILE_USING_SGL -DJO_COMPILE_WITH_FAST_BUT_LESS_ACCURATE_MATH -DJO_COMPILE_WITH_TGA_SUPPORT -DJO_COMPILE_WITH_3D_SUPPORT -DJO_COMPILE_WITH_FS_SUPPORT -DJO_GLOBAL_MEMORY_SIZE_FOR_MALLOC=${JO_GLOBAL_MEMORY_SIZE_FOR_MALLOC} -DJO_MAX_SPRITE=255 -DJO_MAX_FILE_IN_IMAGE_PACK=32 -DJO_MAP_MAX_LAYER=8 -DJO_MAX_SPRITE_ANIM=16 -DJO_MAX_FS_BACKGROUND_JOBS=1 -DJO_COMPILE_WITH_PRINTF_SUPPORT -DJO_COMPILE_WITH_SPRITE_HASHTABLE -DJO_NTSC_VERSION -DJO_COMPILE_WITH_RAM_CARD_SUPPORT -DJO_COMPILE_WITH_DUAL_CPU_SUPPORT "-I$(COMPILER_DIR)/WINDOWS/sh-elf/include" -fkeep-inline-functions -W -Wall -Wshadow -Wbad-function-cast -Winline -Wcomment -Winline -Wsign-compare -Wextra -Wno-strict-aliasing -fno-common -ffast-math --param max-inline-insns-single=50 -fms-extensions -std=gnu99 -fmerge-all-constants -fno-ident -fno-unwind-tables -fno-asynchronous-unwind-tables -fomit-frame-pointer -fstrength-reduce -frerun-loop-opt -O2 -nodefaultlibs -nostdlib -fno-builtin -m2 -c -I$(JO_ENGINE_SRC_DIR) -flto -I$(SGLIDR)
 # environment
-SESSION_MANAGER = local/jackal-pc:@/tmp/.ICE-unix/2337,unix/jackal-pc:/tmp/.ICE-unix/2337
+SESSION_MANAGER = local/jackal-pc:@/tmp/.ICE-unix/2326,unix/jackal-pc:/tmp/.ICE-unix/2326
 # automatic
 *F = $(notdir $*)
 # makefile (from 'makefile', line 4)
@@ -165,7 +165,7 @@ SGLLDR = $(SGLDIR)/LIB_ELF
 # makefile (from '../../Compiler/COMMON/jo_engine_makefile', line 24)
 JO_COMPILE_WITH_FS_MODULE = 1
 # environment
-INVOCATION_ID = e6d6dc645448419a8845fe590c7cbfb2
+INVOCATION_ID = a36f6a8f76054f73a47395e8642bff4e
 # environment
 USERNAME = ash
 # environment
@@ -193,7 +193,7 @@ GIO_LAUNCHED_DESKTOP_FILE = /usr/share/applications/code.desktop
 # makefile
 .DEFAULT_GOAL := all
 # environment
-SYSTEMD_EXEC_PID = 2355
+SYSTEMD_EXEC_PID = 2348
 # makefile (from '../../Compiler/COMMON/jo_engine_makefile', line 237)
 RM = rm -rf
 # makefile (from 'makefile', line 8)
@@ -210,16 +210,16 @@ GTK_MODULES = gail:atk-bridge
 MPFILE = $(TARGET:.elf=.map)
 # default
 MAKE_VERSION := 4.3
-# makefile (from 'makefile', line 13)
+# makefile (from 'makefile', line 14)
 COMPILER_DIR = ../../Compiler
 # makefile (from '../../Compiler/COMMON/jo_engine_makefile', line 270)
 LDFLAGS = -m2 -L$(SGLLDR) -Xlinker -T$(LDFILE) -Xlinker -Map -Xlinker $(MPFILE) -Xlinker -e -Xlinker ___Start -nostartfiles
 # environment
-MANAGERPID = 2179
+MANAGERPID = 2160
 # makefile (from '../../Compiler/COMMON/jo_engine_makefile', line 294)
 MAKEFILE = makefile
 # environment
-GIO_LAUNCHED_DESKTOP_FILE_PID = 4057
+GIO_LAUNCHED_DESKTOP_FILE_PID = 14260
 # environment
 _ = /usr/share/code/code
 # environment
@@ -235,8 +235,8 @@ SYSOBJS = $(SGLLDR)/SGLAREA.O
 # makefile (from 'makefile', line 2)
 JO_COMPILE_WITH_BACKUP_MODULE = 0
 # environment
-JOURNAL_STREAM = 8:45243
-# makefile (from 'makefile', line 12)
+JOURNAL_STREAM = 8:39754
+# makefile (from 'makefile', line 13)
 JO_ENGINE_SRC_DIR = ../../jo_engine
 # makefile (from '../../Compiler/COMMON/jo_engine_makefile', line 241)
 SGLDIR = $(COMPILER_DIR)/COMMON/SGL_302j
@@ -283,7 +283,8 @@ JO_COMPILE_WITH_PSEUDO_MODE7_MODULE = 0
 # environment
 GDMSESSION = ubuntu
 # variable set hash-table stats:
-# Load=135/1024=13%, Rehash=0, Collisions=56/352=16%
+ 
+# Load=136/1024=13%, Rehash=0, Collisions=56/352=16%
 
 # Pattern-specific Variable Values
 
@@ -291,9 +292,9 @@ GDMSESSION = ubuntu
 
 # Directories
 
-# . (device 66309, inode 3596520): 46 files, no impossibilities.
+# . (device 66309, inode 3596520): 43 files, no impossibilities.
 
-# 46 files, no impossibilities in 1 directories.
+# 43 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -310,73 +311,83 @@ GDMSESSION = ubuntu
 
 # Not a target:
 ../../jo_engine/time.o:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
+#  Implicit rule search has been done.
+#  Last modified 2022-07-27 17:09:46.987913761
+#  File has been updated.
+#  Successfully updated.
 
 # Not a target:
 ../../Compiler/COMMON/sgl.linker:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
+#  Implicit rule search has been done.
+#  Last modified 2022-02-17 23:44:13
+#  File has been updated.
+#  Successfully updated.
 
 # Not a target:
 ../../jo_engine/sprite_animator.o:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
+#  Implicit rule search has been done.
+#  Last modified 2022-07-27 17:09:46.987913761
+#  File has been updated.
+#  Successfully updated.
 
- 
 game.bin: game.elf ../../Compiler/COMMON/SGL_302j/LIB_ELF/SGLAREA.O main.o ssv.o newcol.o ../../jo_engine/tga.o ../../jo_engine/3d.o ../../jo_engine/fs.o ../../jo_engine/slave.o ../../jo_engine/font.o ../../jo_engine/input.o ../../jo_engine/physics.o ../../jo_engine/core.o ../../jo_engine/math.o ../../jo_engine/malloc.o ../../jo_engine/tools.o ../../jo_engine/palette.o ../../jo_engine/sprites.o ../../jo_engine/map.o ../../jo_engine/list.o ../../jo_engine/sprite_animator.o ../../jo_engine/image.o ../../jo_engine/vdp2.o ../../jo_engine/time.o ../../jo_engine/vdp1_command_pipeline.o ../../jo_engine/vdp2_malloc.o makefile ../../Compiler/COMMON/sgl.linker
 #  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
+#  Last modified 2022-07-27 17:09:50.471836294
+#  File has been updated.
+#  Successfully updated.
 #  recipe to execute (from '../../Compiler/COMMON/jo_engine_makefile', line 304):
 	$(CONV) -O binary $(TARGET) $(TARGET1)
 
 # Not a target:
 ../../jo_engine/malloc.o:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
+#  Implicit rule search has been done.
+#  Last modified 2022-07-27 17:09:46.851916789
+#  File has been updated.
+#  Successfully updated.
 
 game.iso: game.bin
 #  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
+#  Last modified 2022-07-27 17:09:50.475836206
+#  File has been updated.
+#  Successfully updated.
 #  recipe to execute (from '../../Compiler/COMMON/jo_engine_makefile', line 307):
 	$(CONV) -O binary $(TARGET) cd/0.bin
 	$(MKISOFS) $(MKISOFS_FLAGS)
 
 # Not a target:
 ../../jo_engine/core.o:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
+#  Implicit rule search has been done.
+#  Last modified 2022-07-27 17:09:46.907915542
+#  File has been updated.
+#  Successfully updated.
 
 game.elf: ../../Compiler/COMMON/SGL_302j/LIB_ELF/SGLAREA.O main.o ssv.o newcol.o ../../jo_engine/tga.o ../../jo_engine/3d.o ../../jo_engine/fs.o ../../jo_engine/slave.o ../../jo_engine/font.o ../../jo_engine/input.o ../../jo_engine/physics.o ../../jo_engine/core.o ../../jo_engine/math.o ../../jo_engine/malloc.o ../../jo_engine/tools.o ../../jo_engine/palette.o ../../jo_engine/sprites.o ../../jo_engine/map.o ../../jo_engine/list.o ../../jo_engine/sprite_animator.o ../../jo_engine/image.o ../../jo_engine/vdp2.o ../../jo_engine/time.o ../../jo_engine/vdp1_command_pipeline.o ../../jo_engine/vdp2_malloc.o makefile ../../Compiler/COMMON/sgl.linker
 #  Implicit rule search has not been done.
-#  Last modified 2022-07-25 01:09:03.035159236
-#  File has not been updated.
+#  Last modified 2022-07-27 17:09:50.467836383
+#  File has been updated.
+#  Successfully updated.
 #  recipe to execute (from '../../Compiler/COMMON/jo_engine_makefile', line 301):
 	$(CC) $(LDFLAGS) $(SYSOBJS) $(OBJS) $(LIBS) -o $@
 
 # Not a target:
 ../../jo_engine/vdp2.o:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
+#  Implicit rule search has been done.
+#  Last modified 2022-07-27 17:09:47.071911893
+#  File has been updated.
+#  Successfully updated.
 
 # Not a target:
 ../../jo_engine/map.o:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
+#  Implicit rule search has been done.
+#  Last modified 2022-07-27 17:09:47.003913406
+#  File has been updated.
+#  Successfully updated.
 
 game.cue: game.bin game.iso
 #  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
+#  Last modified 2022-07-27 17:09:50.479836117
+#  File has been updated.
+#  Successfully updated.
 #  recipe to execute (from '../../Compiler/COMMON/jo_engine_makefile', line 311):
 	$(CUE_MAKER)
 
@@ -390,15 +401,17 @@ clean:
 
 # Not a target:
 ../../jo_engine/3d.o:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
+#  Implicit rule search has been done.
+#  Last modified 2022-07-27 17:09:46.97991394
+#  File has been updated.
+#  Successfully updated.
 
 # Not a target:
 ../../jo_engine/vdp1_command_pipeline.o:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
+#  Implicit rule search has been done.
+#  Last modified 2022-07-27 17:09:47.007913316
+#  File has been updated.
+#  Successfully updated.
 
 re: clean all
 #  Phony target (prerequisite of .PHONY).
@@ -408,9 +421,10 @@ re: clean all
 
 # Not a target:
 ../../jo_engine/math.o:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
+#  Implicit rule search has been done.
+#  Last modified 2022-07-27 17:09:46.951914562
+#  File has been updated.
+#  Successfully updated.
 
 # Not a target:
 .DEFAULT:
@@ -423,19 +437,22 @@ all: game.elf game.bin game.iso game.cue
 #  Command line target.
 #  Implicit rule search has not been done.
 #  File does not exist.
-#  File has not been updated.
+#  File has been updated.
+#  Successfully updated.
 
 # Not a target:
 ../../jo_engine/input.o:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
+#  Implicit rule search has been done.
+#  Last modified 2022-07-27 17:09:46.843916966
+#  File has been updated.
+#  Successfully updated.
 
 # Not a target:
 ../../jo_engine/font.o:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
+#  Implicit rule search has been done.
+#  Last modified 2022-07-27 17:09:46.899915719
+#  File has been updated.
+#  Successfully updated.
 
 # Not a target:
 ../../Compiler/COMMON/jo_engine_makefile:
@@ -447,71 +464,80 @@ all: game.elf game.bin game.iso game.cue
 # Not a target:
 ssv.o:
 #  Implicit rule search has been done.
-#  Last modified 2022-07-25 01:09:01.191076456
+#  Last modified 2022-07-27 17:09:46.987913761
 #  File has been updated.
 #  Successfully updated.
 
 # Not a target:
 main.o:
 #  Implicit rule search has been done.
-#  Last modified 2022-07-25 01:09:01.155074839
+#  Last modified 2022-07-27 17:09:47.043912516
 #  File has been updated.
 #  Successfully updated.
 
 # Not a target:
 ../../jo_engine/sprites.o:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
+#  Implicit rule search has been done.
+#  Last modified 2022-07-27 17:09:46.975914028
+#  File has been updated.
+#  Successfully updated.
 
 # Not a target:
 ../../jo_engine/tga.o:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
+#  Implicit rule search has been done.
+#  Last modified 2022-07-27 17:09:46.991913673
+#  File has been updated.
+#  Successfully updated.
 
 # Not a target:
 ../../jo_engine/physics.o:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
+#  Implicit rule search has been done.
+#  Last modified 2022-07-27 17:09:46.751919014
+#  File has been updated.
+#  Successfully updated.
 
 # Not a target:
 ../../jo_engine/list.o:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
+#  Implicit rule search has been done.
+#  Last modified 2022-07-27 17:09:46.975914028
+#  File has been updated.
+#  Successfully updated.
 
 # Not a target:
 makefile:
 #  Implicit rule search has been done.
-#  Last modified 2022-07-25 11:23:34.441304043
+#  Last modified 2022-07-27 17:09:12.936677533
 #  File has been updated.
 #  Successfully updated.
 
 # Not a target:
 ../../jo_engine/tools.o:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
+#  Implicit rule search has been done.
+#  Last modified 2022-07-27 17:09:46.887915988
+#  File has been updated.
+#  Successfully updated.
 
 # Not a target:
 ../../jo_engine/image.o:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
+#  Implicit rule search has been done.
+#  Last modified 2022-07-27 17:09:47.027912871
+#  File has been updated.
+#  Successfully updated.
 
 # Not a target:
 newcol.o:
 #  Implicit rule search has been done.
-#  File does not exist.
-#  File has not been updated.
+#  Last modified 2022-07-27 17:09:46.999913494
+#  File has been updated.
+#  Successfully updated.
 
 # Not a target:
 ../../jo_engine/fs.o:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
+ 
+#  Implicit rule search has been done.
+#  Last modified 2022-07-27 17:09:46.907915542
+#  File has been updated.
+#  Successfully updated.
 
 .PHONY: all clean re
 #  Implicit rule search has not been done.
@@ -527,21 +553,24 @@ newcol.o:
 
 # Not a target:
 ../../jo_engine/palette.o:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
+#  Implicit rule search has been done.
+#  Last modified 2022-07-27 17:09:46.871916343
+#  File has been updated.
+#  Successfully updated.
 
 # Not a target:
 ../../jo_engine/vdp2_malloc.o:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
+#  Implicit rule search has been done.
+#  Last modified 2022-07-27 17:09:47.031912783
+#  File has been updated.
+#  Successfully updated.
 
 # Not a target:
 ../../jo_engine/slave.o:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
+#  Implicit rule search has been done.
+#  Last modified 2022-07-27 17:09:46.843916966
+#  File has been updated.
+#  Successfully updated.
 
 # files hash-table stats:
 # Load=39/1024=4%, Rehash=0, Collisions=8/124=6%
@@ -551,12 +580,12 @@ newcol.o:
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 80 / storage = 1301 B / avg = 16 B
-# current buf: size = 8162 B / used = 1301 B / count = 80 / avg = 16 B
+# strcache buffers: 1 (0) / strings = 76 / storage = 1263 B / avg = 16 B
+# current buf: size = 8162 B / used = 1263 B / count = 76 / avg = 16 B
 
-# strcache performance: lookups = 142 / hit rate = 43%
+# strcache performance: lookups = 139 / hit rate = 45%
 # hash-table stats:
-# Load=80/8192=1%, Rehash=0, Collisions=0/142=0%
-# Finished Make data base on Mon Jul 25 11:23:41 2022
+# Load=76/8192=1%, Rehash=0, Collisions=0/139=0%
+# Finished Make data base on Wed Jul 27 17:10:40 2022
 
  

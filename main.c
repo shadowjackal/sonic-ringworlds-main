@@ -33,7 +33,9 @@
 #include "newcol.h"
 
 #define LWRAM 0x00200000
-#define LWRAM_HEAP_SIZE 1310720
+#define LWRAM_HEAP_SIZE 1048576
+#define HWRAM 0x06040000
+#define HWRAM_SIZE 262144
 
 
 jo_camera               cam;
@@ -54,6 +56,7 @@ FIXED zpitch;
 FIXED zroll;
 FIXED zyaw;
 FIXED livec[XYZ];
+bool CollisionBool = false;
 
 
 typedef struct playerobject {
@@ -64,6 +67,9 @@ typedef struct playerobject {
     bool gnd;
     ANGLE rot; // where sonic is facing relative to the ground
     ROTATE orientation; // which way his body is facing
+    FIXED acc;
+    FIXED dcc;
+    FIXED max;
 } playerobject;
 
 typedef struct orbinaut {
@@ -112,82 +118,82 @@ void                my_gamepad(void)
     case LEFT: 
         tmp_sin = slSin(rotation);
         tmp_cos = slCos(rotation);
-        sonic.pos[0] += tmp_sin; 
-        sonic.pos[0] += tmp_sin;
-        sonic.pos[2] -= tmp_cos;
-        sonic.pos[2] -= tmp_cos; 
+        sonic.spd[0] += slMulFX((tmp_sin), sonic.acc); 
+        sonic.spd[0] += slMulFX((tmp_sin), sonic.acc);
+        sonic.spd[2] -= slMulFX((tmp_cos), sonic.acc);
+        sonic.spd[2] -= slMulFX((tmp_cos), sonic.acc); 
     break;
     case RIGHT:
         tmp_sin = slSin(rotation);
         tmp_cos = slCos(rotation);
-        sonic.pos[0] -= tmp_sin;
-        sonic.pos[0] -= tmp_sin;
-        sonic.pos[2] += tmp_cos;
-        sonic.pos[2] += tmp_cos;
+        sonic.spd[0] -= slMulFX((tmp_sin), sonic.acc);
+        sonic.spd[0] -= slMulFX((tmp_sin), sonic.acc);
+        sonic.spd[2] += slMulFX((tmp_cos), sonic.acc);
+        sonic.spd[2] += slMulFX((tmp_cos), sonic.acc);
     break;
     case UP: 
         tmp_sin = slSin(rotation);
         tmp_cos = slCos(rotation);
-        sonic.pos[0] -= tmp_cos;
-        sonic.pos[0] -= tmp_cos;
-        sonic.pos[2] -= tmp_sin;
-        sonic.pos[2] -= tmp_sin;
+        sonic.spd[0] -= slMulFX((tmp_cos), sonic.acc);
+        sonic.spd[0] -= slMulFX((tmp_cos), sonic.acc);
+        sonic.spd[2] -= slMulFX((tmp_sin), sonic.acc);
+        sonic.spd[2] -= slMulFX((tmp_sin), sonic.acc);
     break;
     case DOWN: 
         tmp_sin = slSin(rotation);
         tmp_cos = slCos(rotation);
-        sonic.pos[0] += tmp_cos; 
-        sonic.pos[0] += tmp_cos;
-        sonic.pos[2] += tmp_sin;
-        sonic.pos[2] += tmp_sin; 
+        sonic.spd[0] += slMulFX((tmp_cos), sonic.acc); 
+        sonic.spd[0] += slMulFX((tmp_cos), sonic.acc);
+        sonic.spd[2] += slMulFX((tmp_sin), sonic.acc);
+        sonic.spd[2] += slMulFX((tmp_sin), sonic.acc); 
     break;
     case UP_LEFT:  
         tmp_sin = slSin(rotation);
         tmp_cos = slCos(rotation);
-        sonic.pos[0] += tmp_sin; 
-        sonic.pos[0] += tmp_sin;
-        sonic.pos[0] -= tmp_cos;
-        sonic.pos[0] -= tmp_cos;
-        sonic.pos[2] -= tmp_cos;
-        sonic.pos[2] -= tmp_cos; 
-        sonic.pos[2] -= tmp_sin;
-        sonic.pos[2] -= tmp_sin;
+        sonic.spd[0] += slMulFX((tmp_sin), sonic.acc); 
+        sonic.spd[0] += slMulFX((tmp_sin), sonic.acc);
+        sonic.spd[0] -= slMulFX((tmp_cos), sonic.acc);
+        sonic.spd[0] -= slMulFX((tmp_cos), sonic.acc);
+        sonic.spd[2] -= slMulFX((tmp_cos), sonic.acc);
+        sonic.spd[2] -= slMulFX((tmp_cos), sonic.acc); 
+        sonic.spd[2] -= slMulFX((tmp_sin), sonic.acc);
+        sonic.spd[2] -= slMulFX((tmp_sin), sonic.acc);
     break;
     case UP_RIGHT:  
         tmp_sin = slSin(rotation);
         tmp_cos = slCos(rotation);
-        sonic.pos[0] -= tmp_sin;
-        sonic.pos[0] -= tmp_sin;
-        sonic.pos[0] -= tmp_cos;
-        sonic.pos[0] -= tmp_cos;
-        sonic.pos[2] += tmp_cos;
-        sonic.pos[2] += tmp_cos;
-        sonic.pos[2] -= tmp_sin;
-        sonic.pos[2] -= tmp_sin;
+        sonic.spd[0] -= slMulFX((tmp_sin), sonic.acc);
+        sonic.spd[0] -= slMulFX((tmp_sin), sonic.acc);
+        sonic.spd[0] -= slMulFX((tmp_cos), sonic.acc);
+        sonic.spd[0] -= slMulFX((tmp_cos), sonic.acc);
+        sonic.spd[2] += slMulFX((tmp_cos), sonic.acc);
+        sonic.spd[2] += slMulFX((tmp_cos), sonic.acc);
+        sonic.spd[2] -= slMulFX((tmp_sin), sonic.acc);
+        sonic.spd[2] -= slMulFX((tmp_sin), sonic.acc);
     break;
     case DOWN_LEFT: 
         tmp_sin = slSin(rotation);
         tmp_cos = slCos(rotation);
-        sonic.pos[0] += tmp_sin; 
-        sonic.pos[0] += tmp_sin;
-        sonic.pos[0] += tmp_cos; 
-        sonic.pos[0] += tmp_cos;
-        sonic.pos[2] -= tmp_cos;
-        sonic.pos[2] -= tmp_cos; 
-        sonic.pos[2] += tmp_sin;
-        sonic.pos[2] += tmp_sin;
+        sonic.spd[0] += slMulFX((tmp_sin), sonic.acc); 
+        sonic.spd[0] += slMulFX((tmp_sin), sonic.acc);
+        sonic.spd[0] += slMulFX((tmp_cos), sonic.acc); 
+        sonic.spd[0] += slMulFX((tmp_cos), sonic.acc);
+        sonic.spd[2] -= slMulFX((tmp_cos), sonic.acc);
+        sonic.spd[2] -= slMulFX((tmp_cos), sonic.acc); 
+        sonic.spd[2] += slMulFX((tmp_sin), sonic.acc);
+        sonic.spd[2] += slMulFX((tmp_sin), sonic.acc);
     break;
     case DOWN_RIGHT:  
         tmp_sin = slSin(rotation);
         tmp_cos = slCos(rotation);
-        sonic.pos[0] -= tmp_sin;
-        sonic.pos[0] -= tmp_sin;
-        sonic.pos[0] += tmp_cos; 
-        sonic.pos[0] += tmp_cos;
-        sonic.pos[2] += tmp_cos;
-        sonic.pos[2] += tmp_cos;
-        sonic.pos[2] += tmp_sin;
-        sonic.pos[2] += tmp_sin; 
+        sonic.spd[0] -= slMulFX((tmp_sin), sonic.acc);
+        sonic.spd[0] -= slMulFX((tmp_sin), sonic.acc);
+        sonic.spd[0] += slMulFX((tmp_cos), sonic.acc); 
+        sonic.spd[0] += slMulFX((tmp_cos), sonic.acc);
+        sonic.spd[2] += slMulFX((tmp_cos), sonic.acc);
+        sonic.spd[2] += slMulFX((tmp_cos), sonic.acc);
+        sonic.spd[2] += slMulFX((tmp_sin), sonic.acc);
+        sonic.spd[2] += slMulFX((tmp_sin), sonic.acc); 
     break;
     case NONE:
         break;
@@ -199,9 +205,9 @@ void                my_gamepad(void)
         rotation -= 400;
     }
     if (jo_is_input_key_pressed(0, JO_KEY_X))
-        zpitch += toFIXED(3);
+        CollisionBool = true;
     if (jo_is_input_key_pressed(0, JO_KEY_Y))
-        zroll += toFIXED(3);
+        CollisionBool = false;
     if (jo_is_input_key_pressed(0, JO_KEY_Z))
         zyaw += toFIXED(3);
 
@@ -213,9 +219,42 @@ void                my_gamepad(void)
     if(jump) {
         sonic.pos[1] += 1;
     }
+
+    if(sonic.spd[0] < -sonic.max) sonic.spd[0] = -sonic.max; 
+    if(sonic.spd[1] < -sonic.max) sonic.spd[1] = -sonic.max; 
+    if(sonic.spd[2] < -sonic.max) sonic.spd[2] = -sonic.max; 
+
+    if(sonic.spd[0] > sonic.max) sonic.spd[0] = sonic.max; 
+    if(sonic.spd[1] > sonic.max) sonic.spd[1] = sonic.max; 
+    if(sonic.spd[2] > sonic.max) sonic.spd[2] = sonic.max; 
+
+
+    sonic.pos[0] += sonic.spd[0];
+    sonic.pos[1] += sonic.spd[1];
+    sonic.pos[2] += sonic.spd[2];
+
+    if(sonic.spd[0] < 0) sonic.spd[0] += sonic.dcc; 
+    if(sonic.spd[1] < 0) sonic.spd[1] += sonic.dcc; 
+    if(sonic.spd[2] < 0) sonic.spd[2] += sonic.dcc; 
+
+    if(sonic.spd[0] > 0) sonic.spd[0] -= sonic.dcc; 
+    if(sonic.spd[1] > 0) sonic.spd[1] -= sonic.dcc; 
+    if(sonic.spd[2] > 0) sonic.spd[2] -= sonic.dcc; 
 }
 
 Plane gplane;
+    Sphere undersonc;   
+
+
+void othercollision(void) {
+    if(CollisionBool == true) {
+        if(Collision_SphereCol_bool_special(&undersonc, &colmesh) || Collision_SpherePlane_bool(&undersonc,&gplane)) sonic.gnd = true; else sonic.gnd = false;
+    }
+    if(sonic.gnd == false)sonic.col.pos[1] += toFIXED(1);
+    sonic.pos[0] = sonic.col.pos[0];
+    sonic.pos[1] = sonic.col.pos[1];
+    sonic.pos[2] = sonic.col.pos[2];
+};
 
 void			    my_draw(void)
 {
@@ -231,7 +270,6 @@ void			    my_draw(void)
     sonic.col.pos[1] = sonic.pos[1];
     sonic.col.pos[2] = sonic.pos[2];
     vec3orbit(campos,target,toFIXED(60),rotation);
-    Sphere undersonc;   
 
 
     cam.target_pos.x = sonic.pos[0];
@@ -251,9 +289,9 @@ void			    my_draw(void)
                      slMulFX((cam.target_pos.z - cam.viewpoint_pos.z),(cam.target_pos.z - cam.viewpoint_pos.z))); 
     if (dist_sq > toFIXED(2500))
     {
-        //move camera closer
-        camera_speed_x = slMulFX((cam.target_pos.x - cam.viewpoint_pos.x),toFIXED(0.025));
-        camera_speed_z = slMulFX((cam.target_pos.z - cam.viewpoint_pos.z),toFIXED(0.025));
+        //move camera closer1
+        camera_speed_x = slMulFX((cam.target_pos.x - cam.viewpoint_pos.x),toFIXED(0.05));
+        camera_speed_z = slMulFX((cam.target_pos.z - cam.viewpoint_pos.z),toFIXED(0.05));
     }
     else
     {
@@ -261,19 +299,20 @@ void			    my_draw(void)
         camera_speed_z = 0;
     }
 
-    Collision_SphereColResolve(&sonic.col,&colmesh);
+if(CollisionBool == true) {
+    if(Collision_SphereColResolve(&sonic.col,&colmesh)) {
+   // sonic.gnd = true;
+    } //else sonic.gnd = false;
+} 
     Collision_SpherePlaneResolve(&sonic.col,&gplane);
+
 
     undersonc.pos[0] = sonic.pos[0];
     undersonc.pos[1] = sonic.pos[1]+toFIXED(12);
     undersonc.pos[2] = sonic.pos[2];
     undersonc.radius = toFIXED(6);
 
-    if(Collision_SphereCol_bool(&undersonc, &colmesh) || Collision_SpherePlane_bool(&undersonc,&gplane)) sonic.gnd = true; else sonic.gnd = false;
-    if(sonic.gnd == false)sonic.col.pos[1] += toFIXED(1);
-    sonic.pos[0] = sonic.col.pos[0];
-    sonic.pos[1] = sonic.col.pos[1];
-    sonic.pos[2] = sonic.col.pos[2];
+    jo_core_exec_on_slave(othercollision);
 
 
     //fframe += 0.25;
@@ -322,7 +361,7 @@ void			    my_draw(void)
     {
         slTranslate(0,0,0);
         slPutPolygonX(&lvlmodel,livec);
-        slPutPolygonX(&trimesh,(VECTOR){0,0,0});
+        //slPutPolygonX(&trimesh,(VECTOR){0,0,0});
         //slPutPolygonX(&orbinautmodel,livec);
     }
     slPopMatrix();
@@ -366,13 +405,17 @@ void			jo_main(void)
     slInitGouraud(Gour, 4096, GRrealBase, GourWork);
     slIntFunction(slGouraudTblCopy); // Copy Gour to VRAM each frame
     slSetGouraudTbl(GourTbl);
-
-    jo_add_memory_zone((unsigned char *)LWRAM, LWRAM_HEAP_SIZE);
+        jo_add_memory_zone((unsigned char *)LWRAM, LWRAM_HEAP_SIZE);
 
 	jo_core_init(JO_COLOR_Blue);
-    jo_memory_fragmentation();
-    
+
+
     jo_3d_camera_init(&cam);
+
+    //colmesh.points = HWRAM;
+    sonic.acc = toFIXED(0.5f);
+    sonic.dcc = toFIXED(0.5f);
+    sonic.max = toFIXED(2.5f);
 
     cam.viewpoint_pos.x = toFIXED(-20);
     cam.viewpoint_pos.y = toFIXED(-20);
@@ -383,14 +426,23 @@ void			jo_main(void)
     cam.target_pos.x = sonic.pos[0];
     cam.target_pos.y = sonic.pos[1]+toFIXED(-12);
     cam.target_pos.z = sonic.pos[2];
-    //slDynamicFrame(1);
+    slDynamicFrame(1);
     //ssvlist0 = jo_3d_create_mesh(ssv_quad_count("CBE.SSV"));
     jo_printf(0,0,"Loading : 0 %%");
     jo_fixed_point_time();
+    slPrint("bfr",slLocate(0,6));
+
     player = ssv_load("OBJ.SSV",0,true,false);
+    slPrint("SNC",slLocate(0,6));
     player0 = ssv_load("BAL.SSV",14,true,false);
+        slPrint("BAL",slLocate(0,6));
+
     orbinautmodel = ssv_load("ORB.SSV",19,false,false);
+        slPrint("ORB",slLocate(0,6));
+
     lvlmodel = ssv_load("LV0.SSV",20,true,false);
+        slPrint("LVL",slLocate(0,6));
+
 
     for(int i = 0; i < orbinautmodel.data.nbPolygon; i++) {
     orbinautmodel.data.attbl[i].sort |= SORT_MAX; 
@@ -434,7 +486,16 @@ void			jo_main(void)
     jo_sprite_add_tga("24","RG3.TGA",JO_COLOR_Transparent);
 
     mesh2coltri(&lvlmodel,&colmesh);
-    trimesh = coltri2mesh(&colmesh.points[0]);
+
+    jo_free(lvlmodel.rdata->fnorm);
+    jo_free(lvlmodel.rdata->vnorm);
+    jo_free(lvlmodel.rdata->pntbl);
+    jo_free(lvlmodel.data.pntbl);
+    jo_free(lvlmodel.data.vntbl);
+    jo_free(lvlmodel.data.pltbl);
+    jo_free(lvlmodel.data.attbl);
+    lvlmodel = ssv_load("TRH.SSV",20,true,false);
+
 //
     sonic.col.radius = toFIXED(11);
     jo_set_tga_palette_handling(my_tga_palette_handling);    //jo_set_tga_palette_handling(&image_pal);
@@ -451,9 +512,9 @@ void			jo_main(void)
     img.data = JO_NULL;
     jo_tga_8bits_loader(&img, JO_ROOT_DIR, "SKY.TGA", 0);
     jo_background_3d_plane_b_img(&img, image_pal.id, true, true);
+    //jo_core_add_callback(my_gamepad);
     jo_free_img(&img);
 
-    //jo_core_add_callback(my_gamepad);
     jo_core_add_vblank_callback(slGouraudTblCopy);
 	jo_core_add_callback(my_draw);
 	jo_core_run();
