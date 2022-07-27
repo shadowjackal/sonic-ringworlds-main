@@ -65,11 +65,11 @@ typedef struct playerobject {
     Sphere col;
     int state; // action state (walking, runnning, holding item, etc)
     bool gnd;
-    ANGLE rot; // where sonic is facing relative to the ground
+    //ANGLE rot; // where sonic is facing relative to the ground
     ROTATE orientation; // which way his body is facing
-    FIXED acc;
-    FIXED dcc;
-    FIXED max;
+    FIXED acceleration;
+    FIXED traction;
+    FIXED max_speed;
 } playerobject;
 
 typedef struct orbinaut {
@@ -98,111 +98,106 @@ Collision colmesh;
 
 float fframe =0;
 int b = 0;
-ANGLE rotation;
 bool jump;
 
 FIXED camera_speed_x;
 FIXED camera_speed_z;
 
-void                vec3orbit(FIXED *position, FIXED *target, FIXED distance, ANGLE angle) {
-        position[0] = target[0] + slMulFX(slCos(angle),distance);
-        position[2] = target[2] + slMulFX(slSin(angle),distance);
+void                camera_rotate(ANGLE angle_change) {
+        //we can't just change camera angle because it will affect camera's chasing parameters
+        //calculate old angle and dist
+        FIXED dist_sq = (slMulFX((cam.target_pos.x - cam.viewpoint_pos.x),(cam.target_pos.x - cam.viewpoint_pos.x))+
+                     slMulFX((cam.target_pos.z - cam.viewpoint_pos.z),(cam.target_pos.z - cam.viewpoint_pos.z))); 
+        FIXED dist = slSquartFX(dist_sq);
+        ANGLE camera_rotation = slAtan(-(cam.target_pos.x - cam.viewpoint_pos.x),-(cam.target_pos.z - cam.viewpoint_pos.z));
+        camera_rotation += angle_change;
+        //update camera coordinates acconding to new angle
+        cam.viewpoint_pos.x = cam.target_pos.x + slMulFX(slCos(camera_rotation),dist);
+        cam.viewpoint_pos.z = cam.target_pos.z + slMulFX(slSin(camera_rotation),dist);
 }
 
 void                my_gamepad(void)
 {
     FIXED tmp_sin;
     FIXED tmp_cos;
+    bool bMovementActive = false;
+    ANGLE camera_rotation = slAtan(-(cam.target_pos.x - cam.viewpoint_pos.x),-(cam.target_pos.z - cam.viewpoint_pos.z));
     switch (jo_get_input_direction_pressed(0))
     {
     case LEFT: 
-        tmp_sin = slSin(rotation);
-        tmp_cos = slCos(rotation);
-        sonic.spd[0] += slMulFX((tmp_sin), sonic.acc); 
-        sonic.spd[0] += slMulFX((tmp_sin), sonic.acc);
-        sonic.spd[2] -= slMulFX((tmp_cos), sonic.acc);
-        sonic.spd[2] -= slMulFX((tmp_cos), sonic.acc); 
+        bMovementActive = true;
+        tmp_sin = slMulFX(slSin(camera_rotation),sonic.acceleration);
+        tmp_cos = slMulFX(slCos(camera_rotation),sonic.acceleration);
+        sonic.spd[X] += tmp_sin; 
+        sonic.spd[Z] -= tmp_cos;
     break;
     case RIGHT:
-        tmp_sin = slSin(rotation);
-        tmp_cos = slCos(rotation);
-        sonic.spd[0] -= slMulFX((tmp_sin), sonic.acc);
-        sonic.spd[0] -= slMulFX((tmp_sin), sonic.acc);
-        sonic.spd[2] += slMulFX((tmp_cos), sonic.acc);
-        sonic.spd[2] += slMulFX((tmp_cos), sonic.acc);
+        bMovementActive = true;
+        tmp_sin = slMulFX(slSin(camera_rotation),sonic.acceleration);
+        tmp_cos = slMulFX(slCos(camera_rotation),sonic.acceleration);
+        sonic.spd[X] -= tmp_sin;
+        sonic.spd[Z] += tmp_cos;
     break;
     case UP: 
-        tmp_sin = slSin(rotation);
-        tmp_cos = slCos(rotation);
-        sonic.spd[0] -= slMulFX((tmp_cos), sonic.acc);
-        sonic.spd[0] -= slMulFX((tmp_cos), sonic.acc);
-        sonic.spd[2] -= slMulFX((tmp_sin), sonic.acc);
-        sonic.spd[2] -= slMulFX((tmp_sin), sonic.acc);
+        bMovementActive = true;
+        tmp_sin = slMulFX(slSin(camera_rotation),sonic.acceleration);
+        tmp_cos = slMulFX(slCos(camera_rotation),sonic.acceleration);
+        sonic.spd[X] -= tmp_cos;
+        sonic.spd[Z] -= tmp_sin;
     break;
     case DOWN: 
-        tmp_sin = slSin(rotation);
-        tmp_cos = slCos(rotation);
-        sonic.spd[0] += slMulFX((tmp_cos), sonic.acc); 
-        sonic.spd[0] += slMulFX((tmp_cos), sonic.acc);
-        sonic.spd[2] += slMulFX((tmp_sin), sonic.acc);
-        sonic.spd[2] += slMulFX((tmp_sin), sonic.acc); 
+        bMovementActive = true;
+        tmp_sin = slMulFX(slSin(camera_rotation),sonic.acceleration);
+        tmp_cos = slMulFX(slCos(camera_rotation),sonic.acceleration);
+        sonic.spd[X] += tmp_cos;
+        sonic.spd[Z] += tmp_sin; 
     break;
     case UP_LEFT:  
-        tmp_sin = slSin(rotation);
-        tmp_cos = slCos(rotation);
-        sonic.spd[0] += slMulFX((tmp_sin), sonic.acc); 
-        sonic.spd[0] += slMulFX((tmp_sin), sonic.acc);
-        sonic.spd[0] -= slMulFX((tmp_cos), sonic.acc);
-        sonic.spd[0] -= slMulFX((tmp_cos), sonic.acc);
-        sonic.spd[2] -= slMulFX((tmp_cos), sonic.acc);
-        sonic.spd[2] -= slMulFX((tmp_cos), sonic.acc); 
-        sonic.spd[2] -= slMulFX((tmp_sin), sonic.acc);
-        sonic.spd[2] -= slMulFX((tmp_sin), sonic.acc);
+        tmp_sin = slMulFX(slSin(camera_rotation),sonic.acceleration);
+        tmp_cos = slMulFX(slCos(camera_rotation),sonic.acceleration);
+        bMovementActive = true;
+        sonic.spd[X] += tmp_sin;
+        sonic.spd[X] -= tmp_cos;
+        sonic.spd[Z] -= tmp_cos; 
+        sonic.spd[Z] -= tmp_sin;
     break;
     case UP_RIGHT:  
-        tmp_sin = slSin(rotation);
-        tmp_cos = slCos(rotation);
-        sonic.spd[0] -= slMulFX((tmp_sin), sonic.acc);
-        sonic.spd[0] -= slMulFX((tmp_sin), sonic.acc);
-        sonic.spd[0] -= slMulFX((tmp_cos), sonic.acc);
-        sonic.spd[0] -= slMulFX((tmp_cos), sonic.acc);
-        sonic.spd[2] += slMulFX((tmp_cos), sonic.acc);
-        sonic.spd[2] += slMulFX((tmp_cos), sonic.acc);
-        sonic.spd[2] -= slMulFX((tmp_sin), sonic.acc);
-        sonic.spd[2] -= slMulFX((tmp_sin), sonic.acc);
+        tmp_sin = slMulFX(slSin(camera_rotation),sonic.acceleration);
+        tmp_cos = slMulFX(slCos(camera_rotation),sonic.acceleration);
+        bMovementActive = true;
+        sonic.spd[X] -= tmp_sin;
+        sonic.spd[X] -= tmp_cos;
+        sonic.spd[Z] += tmp_cos;
+        sonic.spd[Z] -= tmp_sin;
     break;
     case DOWN_LEFT: 
-        tmp_sin = slSin(rotation);
-        tmp_cos = slCos(rotation);
-        sonic.spd[0] += slMulFX((tmp_sin), sonic.acc); 
-        sonic.spd[0] += slMulFX((tmp_sin), sonic.acc);
-        sonic.spd[0] += slMulFX((tmp_cos), sonic.acc); 
-        sonic.spd[0] += slMulFX((tmp_cos), sonic.acc);
-        sonic.spd[2] -= slMulFX((tmp_cos), sonic.acc);
-        sonic.spd[2] -= slMulFX((tmp_cos), sonic.acc); 
-        sonic.spd[2] += slMulFX((tmp_sin), sonic.acc);
-        sonic.spd[2] += slMulFX((tmp_sin), sonic.acc);
+        tmp_sin = slMulFX(slSin(camera_rotation),sonic.acceleration);
+        tmp_cos = slMulFX(slCos(camera_rotation),sonic.acceleration);
+        bMovementActive = true;
+        sonic.spd[X] += tmp_sin; 
+        sonic.spd[X] += tmp_cos; 
+        sonic.spd[Z] -= tmp_cos;
+        sonic.spd[Z] += tmp_sin;
     break;
     case DOWN_RIGHT:  
-        tmp_sin = slSin(rotation);
-        tmp_cos = slCos(rotation);
-        sonic.spd[0] -= slMulFX((tmp_sin), sonic.acc);
-        sonic.spd[0] -= slMulFX((tmp_sin), sonic.acc);
-        sonic.spd[0] += slMulFX((tmp_cos), sonic.acc); 
-        sonic.spd[0] += slMulFX((tmp_cos), sonic.acc);
-        sonic.spd[2] += slMulFX((tmp_cos), sonic.acc);
-        sonic.spd[2] += slMulFX((tmp_cos), sonic.acc);
-        sonic.spd[2] += slMulFX((tmp_sin), sonic.acc);
-        sonic.spd[2] += slMulFX((tmp_sin), sonic.acc); 
+        tmp_sin = slMulFX(slSin(camera_rotation),sonic.acceleration);
+        tmp_cos = slMulFX(slCos(camera_rotation),sonic.acceleration);
+        bMovementActive = true;
+        sonic.spd[X] -= tmp_sin;
+        sonic.spd[X] += tmp_cos; 
+        sonic.spd[Z] += tmp_cos;
+        sonic.spd[Z] += tmp_sin;
     break;
     case NONE:
         break;
     }
     if (jo_is_input_key_pressed(0, JO_KEY_L)) {
-        rotation += 400;
+        //rotate camera around player, but keep player in place 
+        camera_rotate(400);
     }
     if (jo_is_input_key_pressed(0, JO_KEY_R)) {
-        rotation -= 400;
+        //rotate camera around player, but keep player in place 
+        camera_rotate(-400);
     }
     if (jo_is_input_key_pressed(0, JO_KEY_X))
         CollisionBool = true;
@@ -212,34 +207,47 @@ void                my_gamepad(void)
         zyaw += toFIXED(3);
 
     if (jo_is_input_key_down(0, JO_KEY_A))
-        sonic.pos[1] -= toFIXED(1);
+        sonic.pos[Y] -= toFIXED(1);
     if (jo_is_input_key_down(0, JO_KEY_B))
-        sonic.pos[1] += toFIXED(1);
+        sonic.pos[Y] += toFIXED(1);
 
     if(jump) {
-        sonic.pos[1] += 1;
+        sonic.pos[Y] += 1;
     }
 
-    if(sonic.spd[0] < -sonic.max) sonic.spd[0] = -sonic.max; 
-    if(sonic.spd[1] < -sonic.max) sonic.spd[1] = -sonic.max; 
-    if(sonic.spd[2] < -sonic.max) sonic.spd[2] = -sonic.max; 
+    //applying traction among all axises with a normal rate (no brakes)
+    for (int i=0;i<3;i++)
+    {
+        if(sonic.spd[i] < 0) {   
+            sonic.spd[i] += sonic.traction; 
+            if (sonic.spd[i] > 0) sonic.spd[i] = 0;//speed zeroing check
+        }
+        else {
+            sonic.spd[i] -= sonic.traction;
+            if (sonic.spd[i] < 0) sonic.spd[i] = 0;//speed zeroing check
+        }
+    }
 
-    if(sonic.spd[0] > sonic.max) sonic.spd[0] = sonic.max; 
-    if(sonic.spd[1] > sonic.max) sonic.spd[1] = sonic.max; 
-    if(sonic.spd[2] > sonic.max) sonic.spd[2] = sonic.max; 
+    //speed saturation check
+    for (int i=0;i<3;i++)
+    {
+        if(abs(sonic.spd[i]) > sonic.max_speed)
+        {
+            if (sonic.spd[i] > 0)
+                sonic.spd[i] = sonic.max_speed; 
+            else
+                sonic.spd[i] = -sonic.max_speed; 
+        } 
+    }
 
+    //calculating player's rotation based on his speed along x and z axises (he does'n rotate along y yet)
+    //only updating rotation when actually moving
+    if ( (sonic.spd[X]!=0) && (sonic.spd[Z]!=0) )
+        sonic.orientation[Y] = slAtan(-sonic.spd[X],sonic.spd[Z]);
 
-    sonic.pos[0] += sonic.spd[0];
-    sonic.pos[1] += sonic.spd[1];
-    sonic.pos[2] += sonic.spd[2];
-
-    if(sonic.spd[0] < 0) sonic.spd[0] += sonic.dcc; 
-    if(sonic.spd[1] < 0) sonic.spd[1] += sonic.dcc; 
-    if(sonic.spd[2] < 0) sonic.spd[2] += sonic.dcc; 
-
-    if(sonic.spd[0] > 0) sonic.spd[0] -= sonic.dcc; 
-    if(sonic.spd[1] > 0) sonic.spd[1] -= sonic.dcc; 
-    if(sonic.spd[2] > 0) sonic.spd[2] -= sonic.dcc; 
+    //coordinate update
+    for (int i=0;i<3;i++)
+        sonic.pos[i] += sonic.spd[i];
 }
 
 Plane gplane;
@@ -261,7 +269,7 @@ void			    my_draw(void)
     my_gamepad();
  
     cam.viewpoint_pos.y = toFIXED(-35);
-    FIXED campos[XYZ];
+    //FIXED campos[XYZ];
     FIXED target[XYZ];
     target[0] = sonic.pos[0];
     target[1] = sonic.pos[1];
@@ -269,8 +277,6 @@ void			    my_draw(void)
     sonic.col.pos[0] = sonic.pos[0];
     sonic.col.pos[1] = sonic.pos[1];
     sonic.col.pos[2] = sonic.pos[2];
-    vec3orbit(campos,target,toFIXED(60),rotation);
-
 
     cam.target_pos.x = sonic.pos[0];
     cam.target_pos.y = sonic.pos[1]+toFIXED(-12);
@@ -282,7 +288,7 @@ void			    my_draw(void)
         cam.viewpoint_pos.x += camera_speed_x;
         cam.viewpoint_pos.z += camera_speed_z;
         //update camera rotation change due to chasing
-        rotation = slAtan(-(cam.target_pos.x - cam.viewpoint_pos.x),-(cam.target_pos.z - cam.viewpoint_pos.z));
+        //camera_rotation = slAtan(-(cam.target_pos.x - cam.viewpoint_pos.x),-(cam.target_pos.z - cam.viewpoint_pos.z));
     }
     //updating speed
     FIXED dist_sq = (slMulFX((cam.target_pos.x - cam.viewpoint_pos.x),(cam.target_pos.x - cam.viewpoint_pos.x))+
@@ -321,10 +327,12 @@ if(CollisionBool == true) {
     slPrintFX((sonic.pos[0]),slLocate(0,0));
     slPrintFX((sonic.pos[1]),slLocate(0,1));
     slPrintFX((sonic.pos[2]),slLocate(0,2));
+    slPrintFX(sonic.spd[0], slLocate(20,0));
+    slPrintFX(sonic.orientation[Y], slLocate(20,1));
+    slPrintFX(sonic.spd[2], slLocate(20,2));
 
     b += (1);
     jo_3d_camera_look_at(&cam);
-
 
     FIXED pos[][XYZS] =
     {    
@@ -336,13 +344,16 @@ if(CollisionBool == true) {
         SPR_ATTRIBUTE(18, 0, No_Gouraud, CL32KRGB | ECdis | SPenb, sprNoflip | FUNC_Sprite | _ZmCC),
     };
 
+    ANGLE camera_rotation = slAtan(-(cam.target_pos.x - cam.viewpoint_pos.x),-(cam.target_pos.z - cam.viewpoint_pos.z));
+    
+
     slPushMatrix();
     {
         slTranslate(sonic.pos[0], sonic.pos[1], sonic.pos[2]);
         slScale(toFIXED(1),toFIXED(1),toFIXED(1));
-        slRotX(sonic.orientation[0]);
-        slRotY(sonic.orientation[1]);
-        slRotZ(sonic.orientation[2]);
+        slRotX(sonic.orientation[X]);
+        slRotY(sonic.orientation[Y]);
+        slRotZ(sonic.orientation[Z]);
         slPutPolygonX(&player.data, livec);
     }
     slPopMatrix();
@@ -413,9 +424,9 @@ void			jo_main(void)
     jo_3d_camera_init(&cam);
 
     //colmesh.points = HWRAM;
-    sonic.acc = toFIXED(0.5f);
-    sonic.dcc = toFIXED(0.5f);
-    sonic.max = toFIXED(2.5f);
+    sonic.acceleration = toFIXED(0.3f);
+    sonic.traction = toFIXED(0.2f);
+    sonic.max_speed = toFIXED(4.5f);
 
     cam.viewpoint_pos.x = toFIXED(-20);
     cam.viewpoint_pos.y = toFIXED(-20);
