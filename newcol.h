@@ -16,6 +16,22 @@ typedef struct {
     FIXED radius;
 } Sphere;
 
+
+typedef struct playerobject {
+    POINT pos; //position
+    VECTOR spd; //speed
+    Sphere col;
+    int state; // action state (walking, runnning, holding item, etc)
+    bool gnd;
+    //ANGLE rot; // where sonic is facing relative to the ground
+    ROTATE orientation; // which way his body is facing
+    FIXED acceleration;
+    FIXED traction;
+    FIXED max_speed;
+} playerobject;
+
+extern playerobject sonic;
+
 PDATA   coltri2mesh(POINT *t);
 void   mesh2coltri(jklmesh *m, Collision *out);
 void    tridef(const POINT p1, const POINT p2, const POINT p3, POINT* out);

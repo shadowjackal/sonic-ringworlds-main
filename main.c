@@ -57,20 +57,8 @@ FIXED zroll;
 FIXED zyaw;
 FIXED livec[XYZ];
 bool CollisionBool = false;
+bool viewbool = true;
 
-
-typedef struct playerobject {
-    POINT pos; //position
-    VECTOR spd; //speed
-    Sphere col;
-    int state; // action state (walking, runnning, holding item, etc)
-    bool gnd;
-    //ANGLE rot; // where sonic is facing relative to the ground
-    ROTATE orientation; // which way his body is facing
-    FIXED acceleration;
-    FIXED traction;
-    FIXED max_speed;
-} playerobject;
 
 typedef struct orbinaut {
     POINT pos;
@@ -199,12 +187,12 @@ void                my_gamepad(void)
         //rotate camera around player, but keep player in place 
         camera_rotate(-400);
     }
-    if (jo_is_input_key_pressed(0, JO_KEY_X))
-        CollisionBool = true;
-    if (jo_is_input_key_pressed(0, JO_KEY_Y))
-        CollisionBool = false;
-    if (jo_is_input_key_pressed(0, JO_KEY_Z))
-        zyaw += toFIXED(3);
+    if (jo_is_input_key_pressed(0, JO_KEY_X));
+
+    if (jo_is_input_key_down(0, JO_KEY_Y))
+        CollisionBool = !CollisionBool;
+    if (jo_is_input_key_down(0, JO_KEY_Z))
+        viewbool = !viewbool;
 
     if (jo_is_input_key_down(0, JO_KEY_A))
         sonic.pos[Y] -= toFIXED(1);
@@ -255,14 +243,8 @@ Plane gplane;
 
 
 void othercollision(void) {
-    if(CollisionBool == true) {
-        if(Collision_SphereCol_bool_special(&undersonc, &colmesh) || Collision_SpherePlane_bool(&undersonc,&gplane)) sonic.gnd = true; else sonic.gnd = false;
-    }
-    if(sonic.gnd == false)sonic.col.pos[1] += toFIXED(1);
-    sonic.pos[0] = sonic.col.pos[0];
-    sonic.pos[1] = sonic.col.pos[1];
-    sonic.pos[2] = sonic.col.pos[2];
-};
+
+}
 
 void			    my_draw(void)
 {
@@ -312,13 +294,21 @@ if(CollisionBool == true) {
 } 
     Collision_SpherePlaneResolve(&sonic.col,&gplane);
 
-
     undersonc.pos[0] = sonic.pos[0];
-    undersonc.pos[1] = sonic.pos[1]+toFIXED(12);
+    undersonc.pos[1] = sonic.pos[1]+toFIXED(10);
     undersonc.pos[2] = sonic.pos[2];
-    undersonc.radius = toFIXED(6);
+    undersonc.radius = toFIXED(5);
+    if(CollisionBool == true) {
+        if(Collision_SphereCol_bool_special(&undersonc, &colmesh) || Collision_SpherePlane_bool(&undersonc,&gplane)) sonic.gnd = true; else sonic.gnd = false;
+    }
+    if(sonic.gnd == false)  {sonic.col.pos[1] += toFIXED(1);};
+    sonic.pos[0] = sonic.col.pos[0];
+    sonic.pos[1] = sonic.col.pos[1];
+    sonic.pos[2] = sonic.col.pos[2];
 
-    jo_core_exec_on_slave(othercollision);
+
+
+    //jo_core_exec_on_slave(othercollision);
 
 
     //fframe += 0.25;
@@ -368,14 +358,10 @@ if(CollisionBool == true) {
     }
     slPopMatrix();
 
-    slPushMatrix();
-    {
-        slTranslate(0,0,0);
-        slPutPolygonX(&lvlmodel,livec);
+ 
+        if(viewbool)slPutPolygonX(&lvlmodel,livec);
         //slPutPolygonX(&trimesh,(VECTOR){0,0,0});
         //slPutPolygonX(&orbinautmodel,livec);
-    }
-    slPopMatrix();
 
 
     jo_3d_push_matrix();

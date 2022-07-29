@@ -4,6 +4,8 @@
 #include "newcol.h"
 
 int lasthitid = -1;
+int tobecheck[20];
+int hitcnt = 0;
 
 PDATA   coltri2mesh(POINT *t) {
     PDATA retdata;
@@ -177,12 +179,11 @@ static inline void tri_point_closest_pt(POINT P, POINT *triangle, VECTOR out) {
 
 bool Collision_SphereColResolve(Sphere *sphere, Collision *col) {
     bool is_hit = false;
-    int hitcnt = 0;
     
     // Resolve collision against each triangle
     for(int i = 0; i < col->num_tris; i++) {
         // Get closest point on tri to the sphere centre
-        if(manhattandistance(sphere->pos,col->points[i*3]) < toFIXED(150) || manhattandistance(sphere->pos,col->points[(i+1)*3]) < toFIXED(150) ||  manhattandistance(sphere->pos,col->points[(i+2)*3]) < toFIXED(150)) {
+        if(manhattandistance(sphere->pos,col->points[i*3]) < toFIXED(150)) {
         VECTOR closest_pt;
         tri_point_closest_pt(sphere->pos, &col->points[i*3], closest_pt);
         
@@ -192,12 +193,14 @@ bool Collision_SphereColResolve(Sphere *sphere, Collision *col) {
         FIXED delta_dist = slSquartFX(dotvec3n(delta, delta));
         
         if(delta_dist < (sphere->radius >> 4)) {
+            if(is_hit != true) hitcnt = 0;
             vec_normalize(delta);
             
             VECTOR push_back;
             vec_mul_scalar(delta, sphere->radius - (delta_dist << 4), push_back);
             
             vec_add(sphere->pos, push_back, sphere->pos);
+            tobecheck[hitcnt] = i;
             is_hit = true;
             hitcnt += 1;
         }}
@@ -237,10 +240,10 @@ bool Collision_SphereCol_bool(Sphere *sphere, Collision *col) {
     
     // Resolve collision against each triangle
     for(int i = 0; i < col->num_tris; i++) {
-        if(manhattandistance(sphere->pos,col->points[i*3]) < toFIXED(80) || manhattandistance(sphere->pos,col->points[(i+1)*3]) < toFIXED(80) ||  manhattandistance(sphere->pos,col->points[(i+2)*3]) < toFIXED(80)) {
+        if(manhattandistance(sphere->pos,col->points[i]) < toFIXED(300)) {
         // Get closest point on tri to the sphere centre
         VECTOR closest_pt;
-        tri_point_closest_pt(sphere->pos, &col->points[i*3], closest_pt);
+        tri_point_closest_pt(sphere->pos, &col->points[i], closest_pt);
         
         VECTOR delta;
         vec_sub(sphere->pos, closest_pt, delta);
@@ -259,29 +262,12 @@ bool Collision_SphereCol_bool(Sphere *sphere, Collision *col) {
 
 bool Collision_SphereCol_bool_special(Sphere *sphere, Collision *col) {
     bool is_hit = false;
-
-  if(lasthitid != -1) {
-        // Get closest point on tri to the sphere centre
-        VECTOR closest_pt;
-        tri_point_closest_pt(sphere->pos, &col->points[lasthitid], closest_pt);
-        
-        VECTOR delta;
-        vec_sub(sphere->pos, closest_pt, delta);
-        
-        FIXED delta_dist = slSquartFX(dotvec3n(delta, delta));
-        
-        if(delta_dist < (sphere->radius >> 4)) {
-            is_hit = true;
-        }
-        if(is_hit == true) return is_hit;
-    
-    
     // Resolve collision against each triangle
-    for(int i = 0; i < col->num_tris; i++) {
-        if(manhattandistance(sphere->pos,col->points[i*3]) < toFIXED(80) || manhattandistance(sphere->pos,col->points[(i+1)*3]) < toFIXED(80) ||  manhattandistance(sphere->pos,col->points[(i+2)*3]) < toFIXED(80)) {
+    for(int i = 0; i < hitcnt; i++) {
+        if(manhattandistance(sphere->pos,col->points[tobecheck[i]*3]) < toFIXED(300)) {
         // Get closest point on tri to the sphere centre
         VECTOR closest_pt;
-        tri_point_closest_pt(sphere->pos, &col->points[i*3], closest_pt);
+        tri_point_closest_pt(sphere->pos, &col->points[tobecheck[i]*3], closest_pt);
         
         VECTOR delta;
         vec_sub(sphere->pos, closest_pt, delta);
@@ -290,9 +276,24 @@ bool Collision_SphereCol_bool_special(Sphere *sphere, Collision *col) {
         
         if(delta_dist < (sphere->radius >> 4)) {
             is_hit = true;
+            VECTOR normies;
+
+            VECTOR U;
+            vec_sub(col->points[(tobecheck[i]+1)*3],col->points[tobecheck[i]*3],U);
+            VECTOR V;
+            vec_sub(col->points[(tobecheck[i]+2)*3],col->points[tobecheck[i]*3],V);
+
+            normies[X] = (slMulFX(U[Y],V[Z])) - (slMulFX(U[Z],V[Y]));
+            normies[Y] = (slMulFX(U[Z],V[X])) - (slMulFX(U[X],V[Z]));
+            normies[Z] = (slMulFX(U[X],V[Y])) - (slMulFX(U[Y],V[X]));
+
+            vec_normalize(normies);
+
+            sonic.orientation[Z]=(slAtan(-normies[Y],  normies[X]));
+            sonic.orientation[X]=(slAtan(-normies[Y],  normies[Z]));
+            return is_hit;
         }
-        if(is_hit == true) return is_hit;
-    }}}
+    }}
     
     return is_hit;
 }
