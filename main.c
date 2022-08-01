@@ -342,8 +342,8 @@ if(CollisionBool == true) {
         slTranslate(sonic.pos[0], sonic.pos[1], sonic.pos[2]);
         slScale(toFIXED(1),toFIXED(1),toFIXED(1));
         slRotX(sonic.orientation[X]);
-        slRotY(sonic.orientation[Y]);
         slRotZ(sonic.orientation[Z]);
+        slRotY(sonic.orientation[Y]);
         slPutPolygonX(&player.data, livec);
     }
     slPopMatrix();
