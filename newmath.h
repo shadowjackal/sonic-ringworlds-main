@@ -133,6 +133,12 @@ static inline void vec_normalize(VECTOR vec) {
     vec_mul_scalar(vec, k, vec);
 }
 
+static inline void vec_normalize_new(VECTOR vec) {
+   FIXED length_of_v = slSquartFX(slMulFX(vec[X], vec[X]) + slMulFX(vec[Y], vec[Y]) + slMulFX(vec[Z], vec[Z]));
+   vec = (VECTOR){slDivFX(vec[X], length_of_v), slDivFX(vec[Y], length_of_v), slDivFX(vec[Z], length_of_v)};
+}
+
+
 static inline void vec_rotate_about(VECTOR p, VECTOR v, ANGLE a, VECTOR out) {
     FIXED ca = slCos(a), sa = slSin(a);
     FIXED t = toFIXED(1.0) - ca;

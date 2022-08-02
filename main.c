@@ -245,6 +245,8 @@ Plane gplane;
 void othercollision(void) {
 
 }
+    FIXED bnb = 0;
+
 
 void			    my_draw(void)
 {
@@ -294,10 +296,16 @@ if(CollisionBool == true) {
 } 
     Collision_SpherePlaneResolve(&sonic.col,&gplane);
 
-    undersonc.pos[0] = sonic.pos[0];
-    undersonc.pos[1] = sonic.pos[1]+toFIXED(10);
-    undersonc.pos[2] = sonic.pos[2];
-    undersonc.radius = toFIXED(5);
+bnb += toFIXED(0.5);
+
+    undersonc.pos[0] = sonic.pos[0] + slMulFX(sonic.col.radius, slMulFX(toFIXED(100000)+slCos(sonic.orientation[Z]),slSin(sonic.orientation[X]-toFIXED(0))));
+    undersonc.pos[1] = sonic.pos[1] + slMulFX(sonic.col.radius, slMulFX(toFIXED(100000)+slSin(sonic.orientation[Z]),slSin(sonic.orientation[X]-toFIXED(0))));
+    undersonc.pos[2] = sonic.pos[2] + slMulFX(sonic.col.radius, (slCos(sonic.orientation[X]-toFIXED(0))));
+    undersonc.radius = toFIXED(3);
+
+    slPrintFX(undersonc.pos[0],slLocate(20,7));
+    slPrintFX(undersonc.pos[1],slLocate(20,8));
+    slPrintFX(undersonc.pos[2],slLocate(20,9));
     if(CollisionBool == true) {
         if(Collision_SphereCol_bool_special(&undersonc, &colmesh) || Collision_SpherePlane_bool(&undersonc,&gplane)) sonic.gnd = true; else sonic.gnd = false;
     }
@@ -317,9 +325,9 @@ if(CollisionBool == true) {
     slPrintFX((sonic.pos[0]),slLocate(0,0));
     slPrintFX((sonic.pos[1]),slLocate(0,1));
     slPrintFX((sonic.pos[2]),slLocate(0,2));
-    slPrintFX(sonic.spd[0], slLocate(20,0));
-    slPrintFX(sonic.orientation[Y], slLocate(20,1));
-    slPrintFX(sonic.spd[2], slLocate(20,2));
+    slPrintFX(slAng2FX(sonic.orientation[0]), slLocate(20,0));
+    slPrintFX(slAng2FX(sonic.orientation[Y]), slLocate(20,1));
+    slPrintFX(slAng2FX(sonic.orientation[2]), slLocate(20,2));
 
     b += (1);
     jo_3d_camera_look_at(&cam);
@@ -343,7 +351,9 @@ if(CollisionBool == true) {
         slScale(toFIXED(1),toFIXED(1),toFIXED(1));
         slRotX(sonic.orientation[X]);
         slRotZ(sonic.orientation[Z]);
+
         slRotY(sonic.orientation[Y]);
+
         slPutPolygonX(&player.data, livec);
     }
     slPopMatrix();

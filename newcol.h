@@ -25,6 +25,7 @@ typedef struct playerobject {
     bool gnd;
     //ANGLE rot; // where sonic is facing relative to the ground
     ROTATE orientation; // which way his body is facing
+    ANGLE yrot;
     FIXED acceleration;
     FIXED traction;
     FIXED max_speed;

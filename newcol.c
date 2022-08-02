@@ -7,6 +7,172 @@ int lasthitid = -1;
 int tobecheck[20];
 int hitcnt = 0;
 
+Uint8	solve_domain(FIXED normal[XYZ]){
+	if(normal[X] >= 0 && normal[Z] >= 0){
+		//PP
+		return 1;
+	} else if(normal[X] >= 0 && normal[Z] < 0){
+		//PN
+		return 2;
+	} else if(normal[X] < 0 && normal[Z] >= 0){
+		//NP
+		return 3;
+	} else if(normal[X] < 0 && normal[Z] < 0){
+		//NN
+		return 4;
+	};
+	/*
+	3	-	1
+	4	-	2
+	*/
+	return 0;
+}
+
+__jo_force_inline FIXED		fxm(FIXED d1, FIXED d2) //Fixed Point Multiplication
+{
+	register volatile FIXED rtval;
+	asm(
+	"dmuls.l %[d1],%[d2];"
+	"sts MACH,r1;"		// Store system register [sts] , high of 64-bit register MAC to r1
+	"sts MACL,%[out];"	// Low of 64-bit register MAC to the register of output param "out"
+	"xtrct r1,%[out];" 	//This whole procress gets the middle 32-bits of 32 * 32 -> (2x32 bit registers)
+    :    [out] "=r" (rtval)       		 //OUT
+    :    [d1] "r" (d1), [d2] "r" (d2)    //IN
+	:		"r1"						//CLOBBERS
+	);
+	return rtval;
+}
+
+//Note: this function loves to crash the system, dunno why
+__jo_force_inline FIXED	fxdot(FIXED * ptA, FIXED * ptB) //Fixed-point dot product
+{
+	register volatile FIXED rtval;
+	asm(
+		"clrmac;"
+		"mac.l @%[ptr1]+,@%[ptr2]+;"
+		"mac.l @%[ptr1]+,@%[ptr2]+;"
+		"mac.l @%[ptr1]+,@%[ptr2]+;"
+		"sts MACH,r1;"
+		"sts MACL,%[ox];"
+		"xtrct r1,%[ox];"
+		: 	[ox] "=r" (rtval)											//OUT
+		:	[ptr1] "r" (ptA) , [ptr2] "r" (ptB)							//IN
+		:	"r1"														//CLOBBERS
+	);
+	return rtval;
+}
+
+
+
+static inline FIXED dotvec3n(VECTOR vec1, VECTOR vec2) {
+    VECTOR tmp1 = { vec1[X] >> 4, vec1[Y] >> 4, vec1[Z] >> 4 };
+    VECTOR tmp2 = { vec2[X] >> 4, vec2[Y] >> 4, vec2[Z] >> 4 };
+    
+    return slInnerProduct(tmp1, tmp2);
+}
+
+void	separateAngles(FIXED unitA[XYZ], FIXED plUN[XYZ], int degreeOut[XYZ])
+{	
+	FIXED crossXZ[XYZ];
+	FIXED crossYZ[XYZ];
+	FIXED crossYX[XYZ];
+	FIXED mcXZ;
+	FIXED mcYZ;
+	FIXED mcYX;
+	FIXED dotXZ;
+	FIXED dotYZ;
+	FIXED dotYX;
+	FIXED smuXZ[XYZ]; 
+	FIXED smuYZ[XYZ]; 
+	FIXED smuYX[XYZ]; 
+	FIXED spnXZ[XYZ]; 
+	FIXED spnYZ[XYZ]; 
+	FIXED spnYX[XYZ];
+	smuXZ[X] = unitA[X]; smuXZ[Y] = 0; smuXZ[Z] = unitA[Z];
+
+	smuYZ[X] = 0; smuYZ[Y] = unitA[Y]; smuYZ[Z] = unitA[Z];
+
+	smuYX[X] = unitA[X]; smuYX[Y] = unitA[Y]; smuYX[Z] = 0;
+
+	spnXZ[X] = plUN[X]; spnXZ[Y] = 0; spnXZ[Z] = plUN[Z];
+	
+	spnYZ[X] = 0; spnYZ[Y] = plUN[Y]; spnYZ[Z] = plUN[Z];
+	
+	spnYX[X] = plUN[X]; spnYX[Y] = plUN[Y]; spnYX[Z] = 0;
+
+	vec_cross(smuXZ, spnXZ, crossXZ);
+	vec_cross(smuYZ, spnYZ, crossYZ);
+	vec_cross(smuYX, spnYX, crossYX);
+	/////////////////////////////////////////
+	// Efficient (original) version
+	// These appear to be functionally interchangeable, but I will make a note:
+	// the vector cross-products (XZ, YZ, and YX) won't be normalized, because cross-products of normals are less than normals.
+	/////////////////////////////////////////
+	mcXZ = slSquartFX(fxdot(crossXZ, crossXZ));
+	mcYZ = slSquartFX(fxdot(crossYZ, crossYZ));
+	mcYX = slSquartFX(fxdot(crossYX, crossYX));
+	/////////////////////////////////////////
+	// Mathematically correct (new) version
+	/////////////////////////////////////////
+	// int tDot = fxdot(crossXZ, crossXZ);
+	// mcXZ = slMulFX(fxdiv(1<<16, slSquartFX(tDot)), tDot);
+	// tDot = fxdot(crossYZ, crossYZ);
+	// mcYZ = slMulFX(fxdiv(1<<16, slSquartFX(tDot)), tDot);
+	// tDot = fxdot(crossYX, crossYX);
+	// mcYX = slMulFX(fxdiv(1<<16, slSquartFX(tDot)), tDot);
+	//////////////////////////////////////////
+	dotXZ = fxm(unitA[X],plUN[X]) + fxm(unitA[Z],plUN[Z]);
+	dotYZ = fxm(unitA[Y],plUN[Y]) + fxm(unitA[Z],plUN[Z]);
+	dotYX = fxm(unitA[Y],plUN[Y]) + fxm(unitA[X],plUN[X]);
+	if(mcXZ != 0 || dotXZ != 0) degreeOut[X] = (slAtan(mcXZ, dotXZ));
+	if(mcYZ != 0 || dotYZ != 0) degreeOut[Y] = (slAtan(mcYZ, dotYZ));
+	if(mcYX != 0 || dotYX != 0) degreeOut[Z] = (slAtan(mcYX, dotYX));
+	//This is currently producing angle numbers that appear like this:
+	//Degrees are relative to the plane normal as if a plane. 0 degrees is parallel to the plane, but perpendicular to the planar normal direction.
+	//Degrees 360 to 270 appear to be for angles facing away from the plane.
+	//Degrees 0 to 90 appear to be for angles facing into the plane.
+	//The sign (+/-) of the angle does not appear to be spoken of.
+	
+	//Three components: Y rot [X-Z]. Xrot [Y-Z]. Zrot [Y-X]. The exact definition of these rotations depends on the axis.
+}
+
+//What is this doing?
+//It is re-processing the X and Z values of the output as if it were rotated X and Z _after_ it is rotated by output's Y.
+//This is very strange, when I think about it.
+void	sort_angle_to_domain(FIXED unitNormal[XYZ], FIXED unitOrient[XYZ], int output[XYZ])
+{
+static int angleComponents[XYZ];
+separateAngles(unitOrient, unitNormal, angleComponents);
+Uint8 domain = solve_domain(unitNormal);
+//jo_printf(0, 20, "(%i)", domain);
+// deg * 182 = angle
+if(domain == 1){ //++
+output[X] = (fxm(fxm(slSin(angleComponents[Z]), (angleComponents[Z] - 49140) ), slSin((output[Y]) - angleComponents[X])) +
+						fxm(fxm(slSin(angleComponents[Y]), (angleComponents[Y] - 49140) ), slSin((output[Y] + (90 * 182))) )); 
+output[Z] = (fxm(fxm(slSin(angleComponents[Z]), angleComponents[Z] - 49140), slCos((output[Y]) - angleComponents[X])) +
+						fxm(fxm(slSin(angleComponents[Y]), angleComponents[Y] - 49140), slCos((output[Y] + (90 * 182))) )); 
+						//return;
+} else if(domain == 2){ //-+
+output[X] = (fxm(fxm(slSin(angleComponents[Z]), (angleComponents[Z] - 49140) ), slSin((output[Y]) - angleComponents[X])) +
+						fxm(fxm(slSin(angleComponents[Y]), (angleComponents[Y] - 49140) ), slSin((output[Y] - (90 * 182))) )); 
+output[Z] = (fxm(fxm(slSin(angleComponents[Z]), angleComponents[Z] - 49140), slCos((output[Y]) - angleComponents[X])) +
+						fxm(fxm(slSin(angleComponents[Y]), angleComponents[Y] - 49140), slCos((output[Y] - (90 * 182))) )); 
+						//return;
+} else if(domain == 3){ //+-
+output[X] = -(fxm(fxm(slSin(angleComponents[Z]), (angleComponents[Z] - 49140) ), slSin((output[Y]) - angleComponents[X])) +
+						fxm(fxm(slSin(angleComponents[Y]), (angleComponents[Y] - 49140) ), slSin((output[Y] - (90 * 182))) )); 
+output[Z] = -(fxm(fxm(slSin(angleComponents[Z]), angleComponents[Z] - 49140), slCos((output[Y]) - angleComponents[X])) +
+						fxm(fxm(slSin(angleComponents[Y]), angleComponents[Y] - 49140), slCos((output[Y] - (90 * 182))) )); 
+						//return;
+} else if(domain == 4){ //--
+output[X] = -(fxm(fxm(slSin(angleComponents[Z]), (angleComponents[Z] - 49140) ), slSin((output[Y]) - angleComponents[X])) +
+						fxm(fxm(slSin(angleComponents[Y]), (angleComponents[Y] - 49140) ), slSin((output[Y] + (90 * 182))) )); 
+output[Z] = -(fxm(fxm(slSin(angleComponents[Z]), angleComponents[Z] - 49140), slCos((output[Y]) - angleComponents[X])) +
+						fxm(fxm(slSin(angleComponents[Y]), angleComponents[Y] - 49140), slCos((output[Y] + (90 * 182))) )); 
+						//return;
+}	
+}
+
 PDATA   coltri2mesh(POINT *t) {
     PDATA retdata;
     retdata.nbPoint = 4;
@@ -107,12 +273,7 @@ static inline bool tri_point_intersects(POINT *triangle, VECTOR P) {
     return true;
 }
 
-static inline FIXED dotvec3n(VECTOR vec1, VECTOR vec2) {
-    VECTOR tmp1 = { vec1[X] >> 4, vec1[Y] >> 4, vec1[Z] >> 4 };
-    VECTOR tmp2 = { vec2[X] >> 4, vec2[Y] >> 4, vec2[Z] >> 4 };
-    
-    return slInnerProduct(tmp1, tmp2);
-}
+
 
 static inline void line_point_closest_pt(VECTOR A, VECTOR B, VECTOR P, VECTOR out) {
     VECTOR AP, AB;
@@ -234,6 +395,7 @@ bool Collision_SpherePlaneResolve(Sphere *sphere, Plane *plane) {
     return false;
 }
 
+FIXED orient[3] = {0, -1<<16, 0};
 
 bool Collision_SphereCol_bool(Sphere *sphere, Collision *col) {
     bool is_hit = false;
@@ -276,7 +438,7 @@ bool Collision_SphereCol_bool_special(Sphere *sphere, Collision *col) {
         
         if(delta_dist < (sphere->radius >> 4)) {
             is_hit = true;
-            VECTOR normies;
+            FIXED normies[3];
 
             VECTOR U;
             vec_sub(col->points[(tobecheck[i]+1)*3],col->points[tobecheck[i]*3],U);
@@ -289,8 +451,14 @@ bool Collision_SphereCol_bool_special(Sphere *sphere, Collision *col) {
 
             vec_normalize(normies);
 
-            sonic.orientation[Z]=(slAtan(-normies[Y],  normies[X]));
-            sonic.orientation[X]=(slAtan(-normies[Y],  normies[Z]));
+            slPrintFX(toFIXED(normies[X]), slLocate(20,4));
+            slPrintFX(toFIXED(normies[Y]), slLocate(20,5));
+            slPrintFX(toFIXED(normies[Z]), slLocate(20,6));
+
+
+            sonic.orientation[X] = LerpAng(sonic.orientation[X], slAtan(JO_ABS(normies[Y]), normies[Z]),toFIXED(0.25));
+            sonic.orientation[Z] = LerpAng(sonic.orientation[Z], slAtan(JO_ABS(normies[Y]), normies[X]),toFIXED(0.25));
+
             return is_hit;
         }
     }}
