@@ -298,9 +298,9 @@ if(CollisionBool == true) {
 
 bnb += toFIXED(0.5);
 
-    undersonc.pos[0] = sonic.pos[0] + slMulFX(sonic.col.radius, slMulFX(toFIXED(100000)+slCos(sonic.orientation[Z]),slSin(sonic.orientation[X]-toFIXED(0))));
-    undersonc.pos[1] = sonic.pos[1] + slMulFX(sonic.col.radius, slMulFX(toFIXED(100000)+slSin(sonic.orientation[Z]),slSin(sonic.orientation[X]-toFIXED(0))));
-    undersonc.pos[2] = sonic.pos[2] + slMulFX(sonic.col.radius, (slCos(sonic.orientation[X]-toFIXED(0))));
+    undersonc.pos[0] = sonic.pos[0];
+    undersonc.pos[1] = sonic.pos[1] + toFIXED(10);
+    undersonc.pos[2] = sonic.pos[2];
     undersonc.radius = toFIXED(3);
 
     slPrintFX(undersonc.pos[0],slLocate(20,7));

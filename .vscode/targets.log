@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Wed Aug  3 02:56:48 2022
+# Make data base, printed on Wed Aug  3 03:03:33 2022
 
 # Variables
 
@@ -57,7 +57,7 @@ VSCODE_CODE_CACHE_PATH = /home/ash/.config/Code/CachedData/3b889b090b5ad5793f524
 # environment
 LANG = C
 # environment
-XAUTHORITY = /run/user/1000/.mutter-Xwaylandauth.CVEHQ1
+XAUTHORITY = /run/user/1000/.mutter-Xwaylandauth.ZK1AQ1
 # default
 .LOADED := 
 # makefile (from 'makefile', line 10)
@@ -103,7 +103,7 @@ MAKEFILE_LIST := makefile ../../Compiler/COMMON/jo_engine_makefile
 # automatic
 @F = $(notdir $@)
 # environment
-VSCODE_PID = 3561
+VSCODE_PID = 3297
 # environment
 XDG_SESSION_TYPE = wayland
 # automatic
@@ -113,7 +113,7 @@ JO_COMPILE_USING_SGL = 1
 # makefile (from '../../Compiler/COMMON/jo_engine_makefile', line 262)
 CCFLAGS = -DJO_FRAMERATE=1 -DJO_COMPILE_USING_SGL -DJO_COMPILE_WITH_FAST_BUT_LESS_ACCURATE_MATH -DJO_COMPILE_WITH_TGA_SUPPORT -DJO_COMPILE_WITH_3D_SUPPORT -DJO_COMPILE_WITH_FS_SUPPORT -DJO_GLOBAL_MEMORY_SIZE_FOR_MALLOC=${JO_GLOBAL_MEMORY_SIZE_FOR_MALLOC} -DJO_MAX_SPRITE=255 -DJO_MAX_FILE_IN_IMAGE_PACK=32 -DJO_MAP_MAX_LAYER=8 -DJO_MAX_SPRITE_ANIM=16 -DJO_MAX_FS_BACKGROUND_JOBS=1 -DJO_COMPILE_WITH_PRINTF_SUPPORT -DJO_COMPILE_WITH_SPRITE_HASHTABLE -DJO_NTSC_VERSION -DJO_COMPILE_WITH_RAM_CARD_SUPPORT -DJO_COMPILE_WITH_DUAL_CPU_SUPPORT "-I$(COMPILER_DIR)/WINDOWS/sh-elf/include" -fkeep-inline-functions -W -Wall -Wshadow -Wbad-function-cast -Winline -Wcomment -Winline -Wsign-compare -Wextra -Wno-strict-aliasing -fno-common -ffast-math --param max-inline-insns-single=50 -fms-extensions -std=gnu99 -fmerge-all-constants -fno-ident -fno-unwind-tables -fno-asynchronous-unwind-tables -fomit-frame-pointer -fstrength-reduce -frerun-loop-opt -O2 -nodefaultlibs -nostdlib -fno-builtin -m2 -c -I$(JO_ENGINE_SRC_DIR) -flto -I$(SGLIDR)
 # environment
-SESSION_MANAGER = local/jackal-pc:@/tmp/.ICE-unix/2388,unix/jackal-pc:/tmp/.ICE-unix/2388
+SESSION_MANAGER = local/jackal-pc:@/tmp/.ICE-unix/2288,unix/jackal-pc:/tmp/.ICE-unix/2288
 # automatic
 *F = $(notdir $*)
 # makefile (from 'makefile', line 4)
@@ -165,14 +165,13 @@ SGLLDR = $(SGLDIR)/LIB_ELF
 # makefile (from '../../Compiler/COMMON/jo_engine_makefile', line 24)
 JO_COMPILE_WITH_FS_MODULE = 1
 # environment
-INVOCATION_ID = 63cb5e612007432284adbc44b206143f
+INVOCATION_ID = bb52a602f1614d0ab9f4ae7473d8c142
 # environment
 USERNAME = ash
 # environment
 GNOME_SETUP_DISPLAY = :1
 # environment
 LESSCLOSE = /usr/bin/lesspipe %s %s
- 
 # automatic
 ?F = $(notdir $?)
 # environment
@@ -194,7 +193,7 @@ GIO_LAUNCHED_DESKTOP_FILE = /usr/share/applications/code.desktop
 # makefile
 .DEFAULT_GOAL := all
 # environment
-SYSTEMD_EXEC_PID = 2410
+SYSTEMD_EXEC_PID = 2307
 # makefile (from '../../Compiler/COMMON/jo_engine_makefile', line 237)
 RM = rm -rf
 # makefile (from 'makefile', line 8)
@@ -216,11 +215,11 @@ COMPILER_DIR = ../../Compiler
 # makefile (from '../../Compiler/COMMON/jo_engine_makefile', line 270)
 LDFLAGS = -m2 -L$(SGLLDR) -Xlinker -T$(LDFILE) -Xlinker -Map -Xlinker $(MPFILE) -Xlinker -e -Xlinker ___Start -nostartfiles
 # environment
-MANAGERPID = 2226
+MANAGERPID = 2126
 # makefile (from '../../Compiler/COMMON/jo_engine_makefile', line 294)
 MAKEFILE = makefile
 # environment
-GIO_LAUNCHED_DESKTOP_FILE_PID = 3561
+GIO_LAUNCHED_DESKTOP_FILE_PID = 3297
 # environment
 _ = /usr/share/code/code
 # environment
@@ -236,7 +235,7 @@ SYSOBJS = $(SGLLDR)/SGLAREA.O
 # makefile (from 'makefile', line 2)
 JO_COMPILE_WITH_BACKUP_MODULE = 0
 # environment
-JOURNAL_STREAM = 8:41656
+JOURNAL_STREAM = 8:42344
 # makefile (from 'makefile', line 13)
 JO_ENGINE_SRC_DIR = ../../jo_engine
 # makefile (from '../../Compiler/COMMON/jo_engine_makefile', line 241)
@@ -279,6 +278,7 @@ CC = $(COMPILER_DIR)/LINUX/bin/sh-none-elf-gcc-8.2.0
 XDG_MENU_PREFIX = gnome-
 # makefile (from 'makefile', line 1)
 JO_COMPILE_WITH_VIDEO_MODULE = 0
+ 
 # makefile (from 'makefile', line 6)
 JO_COMPILE_WITH_PSEUDO_MODE7_MODULE = 0
 # environment
@@ -560,13 +560,13 @@ newcol.o:
 # Not a target:
 ../../jo_engine/vdp2_malloc.o:
 #  Implicit rule search has been done.
+ 
 #  Last modified 2022-08-03 00:01:14.371711592
 #  File has been updated.
 #  Successfully updated.
 
 # Not a target:
 ../../jo_engine/slave.o:
- 
 #  Implicit rule search has been done.
 #  Last modified 2022-08-03 00:01:14.219706845
 #  File has been updated.
@@ -586,6 +586,6 @@ newcol.o:
 # strcache performance: lookups = 140 / hit rate = 45%
 # hash-table stats:
 # Load=77/8192=1%, Rehash=0, Collisions=0/140=0%
-# Finished Make data base on Wed Aug  3 02:56:48 2022
+# Finished Make data base on Wed Aug  3 03:03:33 2022
 
  
