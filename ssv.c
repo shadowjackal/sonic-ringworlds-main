@@ -1,5 +1,6 @@
 #include <jo/jo.h>
 #include "ssv.h"
+#include <string.h>
 
 Uint16 GRreal_ptr = 0xe000;
 
@@ -216,7 +217,6 @@ jklmesh                ssv_load(char *file_input, int textureoffset, bool gourau
     char *stream = jo_fs_read_file(file_input,NULL);
 
     int offset = 0;
-    int qi;
     int texids[2000];
     int colorrgb[2000][3];
 
@@ -237,13 +237,13 @@ jklmesh                ssv_load(char *file_input, int textureoffset, bool gourau
     mesh.data.pntbl = (POINT *)jo_malloc_with_behaviour(mesh.data.nbPoint * sizeof(*mesh.data.pntbl),JO_MALLOC_TRY_REUSE_SAME_BLOCK_SIZE);
     mesh.data.vntbl = (VECTOR *)jo_malloc_with_behaviour(mesh.data.nbPoint * sizeof(*mesh.data.vntbl),JO_MALLOC_TRY_REUSE_SAME_BLOCK_SIZE);
 
-    for(int i = 0; i < mesh.framecount; i++) {
+    for(int i = 0; i < (int)mesh.framecount; i++) {
         mesh.rdata[i].pntbl = (POINT *)jo_malloc_with_behaviour(mesh.data.nbPoint * sizeof(*mesh.data.pntbl),JO_MALLOC_TRY_REUSE_SAME_BLOCK_SIZE);
     }
     
     
     mesh.data.pltbl = (POLYGON *)jo_malloc_with_behaviour(mesh.data.nbPolygon * sizeof(*mesh.data.pltbl),JO_MALLOC_TRY_REUSE_SAME_BLOCK_SIZE);
-    for(int i = 0; i < mesh.data.nbPolygon; i++) {
+    for(int i = 0; i < (int)mesh.data.nbPolygon; i++) {
     for(int ii = 0; ii < 4; ii++){
         memcpy(&mesh.data.pltbl[i].Vertices[ii], &stream[offset], sizeof(short));
         offset += sizeof(short);
@@ -264,7 +264,7 @@ jklmesh                ssv_load(char *file_input, int textureoffset, bool gourau
 
 
     ////memcpy(mesh.data.pntbl, &stream[offset], sizeof(POINT) * mesh.data.nbPoint);
-    for(int i = 0; i < mesh.framecount; i++) {
+    for(int i = 0; i < (int)mesh.framecount; i++) {
     memcpy(mesh.rdata[i].pntbl, &stream[offset], sizeof(POINT) * mesh.data.nbPoint);
     offset += sizeof(POINT)*mesh.data.nbPoint;
     }
@@ -276,33 +276,33 @@ jklmesh                ssv_load(char *file_input, int textureoffset, bool gourau
     mesh.rdata[i].fnorm = jo_malloc_with_behaviour(sizeof(Uint32)*mesh.data.nbPolygon,JO_MALLOC_TRY_REUSE_SAME_BLOCK_SIZE);
     }
 
-    for(int i = 0; i < mesh.framecount; i++) {
-    for(int j = 0; j < mesh.data.nbPolygon; j++) {
+    for(int i = 0; i < (int)mesh.framecount; i++) {
+    for(int j = 0; j < (int)mesh.data.nbPolygon; j++) {
         memcpy(&mesh.rdata[i].fnorm[j],&stream[offset],sizeof(Uint32));
         offset += sizeof(Uint32);
     }
     }
 //
-    for(int i = 0; i < mesh.framecount; i++) {
+    for(int i = 0; i < (int)mesh.framecount; i++) {
     mesh.rdata[i].vnorm = jo_malloc_with_behaviour(sizeof(Uint32)*mesh.data.nbPoint,JO_MALLOC_TRY_REUSE_SAME_BLOCK_SIZE);
     }
 //
-    for(int i = 0; i < mesh.framecount; i++) {
-    for(int j = 0; j < mesh.data.nbPoint; j++) {
+    for(int i = 0; i < (int)mesh.framecount; i++) {
+    for(int j = 0; j < (int)mesh.data.nbPoint; j++) {
         memcpy(&mesh.rdata[i].vnorm[j],&stream[offset],sizeof(Uint32));
         offset += sizeof(Uint32);
     }
     }
 //
 //
-    for(int i = 0; i < mesh.data.nbPolygon; i++) {
+    for(int i = 0; i < (int)mesh.data.nbPolygon; i++) {
         mesh.data.pltbl[i].norm[0] = -ANORMS[mesh.rdata[0].fnorm[i]][0];
         mesh.data.pltbl[i].norm[1] = -ANORMS[mesh.rdata[0].fnorm[i]][1];
         mesh.data.pltbl[i].norm[2] = -ANORMS[mesh.rdata[0].fnorm[i]][2];
 
     }
 
-    for(int i = 0; i < mesh.data.nbPoint; i++) {
+    for(int i = 0; i < (int)mesh.data.nbPoint; i++) {
         mesh.data.vntbl[i][0] = -ANORMS[mesh.rdata[0].vnorm[i]][0];
         mesh.data.vntbl[i][1] = -ANORMS[mesh.rdata[0].vnorm[i]][1];
         mesh.data.vntbl[i][2] = -ANORMS[mesh.rdata[0].vnorm[i]][2];
@@ -310,7 +310,7 @@ jklmesh                ssv_load(char *file_input, int textureoffset, bool gourau
 
     //sets attributes of faces (transparency, mesh effect, etc)
     mesh.data.attbl = (ATTR *)jo_malloc_with_behaviour(mesh.data.nbPolygon * sizeof(*mesh.data.attbl), JO_MALLOC_TRY_REUSE_SAME_BLOCK_SIZE);
-    for(int i = 0; i < mesh.data.nbPolygon; i++)
+    for(int i = 0; i < (int)mesh.data.nbPolygon; i++)
     {
         //jo_color coloroid = JO_COLOR_SATURN_RGB(colorrgb[i][0],colorrgb[i][1],colorrgb[i][2]);
         //if(i != 0) {
@@ -319,9 +319,9 @@ jklmesh                ssv_load(char *file_input, int textureoffset, bool gourau
         
         if(gouraud == true)proxy_attribute.atrb |= CL_Gouraud; 
         if(gouraud == true)proxy_attribute.sort |= UseGouraud; else proxy_attribute.sort |= No_Gouraud;
-        if(gouraud == true)proxy_attribute.gstb = GRreal_ptr++; else proxy_attribute.gstb = NULL;
+        if(gouraud == true)proxy_attribute.gstb = GRreal_ptr++; else proxy_attribute.gstb = (int)NULL;
         if(gouraud == true)pro_attribute.sort |= UseGouraud; else pro_attribute.sort |= No_Gouraud;
-        if(gouraud == true)pro_attribute.gstb = GRreal_ptr++; else pro_attribute.gstb = NULL;
+        if(gouraud == true)pro_attribute.gstb = GRreal_ptr++; else pro_attribute.gstb = (int)NULL;
         if(gouraud == true)pro_attribute.atrb |= CL_Gouraud;
         if(texids[i] != -1) {
         mesh.data.attbl[i] = proxy_attribute;
@@ -351,16 +351,17 @@ int                ssv_update(jklmesh *mesh, int frame) {
 
     mesh->data.pntbl = mesh->rdata[frame].pntbl;
     
-    for(int i = 0; i < mesh->data.nbPolygon; i++) {
+    for(int i = 0; i < (int)mesh->data.nbPolygon; i++) {
         mesh->data.pltbl[i].norm[0] = -ANORMS[mesh->rdata[frame].fnorm[i]][0];
         mesh->data.pltbl[i].norm[1] = -ANORMS[mesh->rdata[frame].fnorm[i]][1];
         mesh->data.pltbl[i].norm[2] = -ANORMS[mesh->rdata[frame].fnorm[i]][2];
 
     }
 
-    for(int i = 0; i < mesh->data.nbPoint; i++) {
+    for(int i = 0; i < (int)mesh->data.nbPoint; i++) {
         mesh->data.vntbl[i][0] = -ANORMS[mesh->rdata[frame].vnorm[i]][0];
         mesh->data.vntbl[i][1] = -ANORMS[mesh->rdata[frame].vnorm[i]][1];
         mesh->data.vntbl[i][2] = -ANORMS[mesh->rdata[frame].vnorm[i]][2];
     }
+    return 0;
 }

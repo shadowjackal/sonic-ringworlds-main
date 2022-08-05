@@ -108,33 +108,33 @@ void                my_gamepad(void)
 {
     FIXED tmp_sin;
     FIXED tmp_cos;
-    bool bMovementActive = false;
+   // bool bMovementActive = false;
     ANGLE camera_rotation = slAtan(-(cam.target_pos.x - cam.viewpoint_pos.x),-(cam.target_pos.z - cam.viewpoint_pos.z));
     switch (jo_get_input_direction_pressed(0))
     {
     case LEFT: 
-        bMovementActive = true;
+        //bMovementActive = true;
         tmp_sin = slMulFX(slSin(camera_rotation),sonic.acceleration);
         tmp_cos = slMulFX(slCos(camera_rotation),sonic.acceleration);
         sonic.spd[X] += tmp_sin; 
         sonic.spd[Z] -= tmp_cos;
     break;
     case RIGHT:
-        bMovementActive = true;
+        //bMovementActive = true;
         tmp_sin = slMulFX(slSin(camera_rotation),sonic.acceleration);
         tmp_cos = slMulFX(slCos(camera_rotation),sonic.acceleration);
         sonic.spd[X] -= tmp_sin;
         sonic.spd[Z] += tmp_cos;
     break;
     case UP: 
-        bMovementActive = true;
+       // bMovementActive = true;
         tmp_sin = slMulFX(slSin(camera_rotation),sonic.acceleration);
         tmp_cos = slMulFX(slCos(camera_rotation),sonic.acceleration);
         sonic.spd[X] -= tmp_cos;
         sonic.spd[Z] -= tmp_sin;
     break;
     case DOWN: 
-        bMovementActive = true;
+       // bMovementActive = true;
         tmp_sin = slMulFX(slSin(camera_rotation),sonic.acceleration);
         tmp_cos = slMulFX(slCos(camera_rotation),sonic.acceleration);
         sonic.spd[X] += tmp_cos;
@@ -143,7 +143,7 @@ void                my_gamepad(void)
     case UP_LEFT:  
         tmp_sin = slMulFX(slSin(camera_rotation),sonic.acceleration);
         tmp_cos = slMulFX(slCos(camera_rotation),sonic.acceleration);
-        bMovementActive = true;
+       // bMovementActive = true;
         sonic.spd[X] += tmp_sin;
         sonic.spd[X] -= tmp_cos;
         sonic.spd[Z] -= tmp_cos; 
@@ -152,7 +152,7 @@ void                my_gamepad(void)
     case UP_RIGHT:  
         tmp_sin = slMulFX(slSin(camera_rotation),sonic.acceleration);
         tmp_cos = slMulFX(slCos(camera_rotation),sonic.acceleration);
-        bMovementActive = true;
+        //bMovementActive = true;
         sonic.spd[X] -= tmp_sin;
         sonic.spd[X] -= tmp_cos;
         sonic.spd[Z] += tmp_cos;
@@ -161,7 +161,7 @@ void                my_gamepad(void)
     case DOWN_LEFT: 
         tmp_sin = slMulFX(slSin(camera_rotation),sonic.acceleration);
         tmp_cos = slMulFX(slCos(camera_rotation),sonic.acceleration);
-        bMovementActive = true;
+       // bMovementActive = true;
         sonic.spd[X] += tmp_sin; 
         sonic.spd[X] += tmp_cos; 
         sonic.spd[Z] -= tmp_cos;
@@ -170,7 +170,7 @@ void                my_gamepad(void)
     case DOWN_RIGHT:  
         tmp_sin = slMulFX(slSin(camera_rotation),sonic.acceleration);
         tmp_cos = slMulFX(slCos(camera_rotation),sonic.acceleration);
-        bMovementActive = true;
+       // bMovementActive = true;
         sonic.spd[X] -= tmp_sin;
         sonic.spd[X] += tmp_cos; 
         sonic.spd[Z] += tmp_cos;
@@ -187,7 +187,7 @@ void                my_gamepad(void)
         //rotate camera around player, but keep player in place 
         camera_rotate(-400);
     }
-    if (jo_is_input_key_pressed(0, JO_KEY_X));
+    //if (jo_is_input_key_pressed(0, JO_KEY_X));
 
     if (jo_is_input_key_down(0, JO_KEY_Y))
         CollisionBool = !CollisionBool;
@@ -219,7 +219,7 @@ void                my_gamepad(void)
     //speed saturation check
     for (int i=0;i<3;i++)
     {
-        if(abs(sonic.spd[i]) > sonic.max_speed)
+        if(JO_ABS(sonic.spd[i]) > sonic.max_speed)
         {
             if (sonic.spd[i] > 0)
                 sonic.spd[i] = sonic.max_speed; 
@@ -254,10 +254,10 @@ void			    my_draw(void)
  
     cam.viewpoint_pos.y = toFIXED(-35);
     //FIXED campos[XYZ];
-    FIXED target[XYZ];
-    target[0] = sonic.pos[0];
-    target[1] = sonic.pos[1];
-    target[2] = sonic.pos[2];
+   // FIXED target[XYZ];
+    //target[0] = sonic.pos[0];
+    //target[1] = sonic.pos[1];
+    //target[2] = sonic.pos[2];
     sonic.col.pos[0] = sonic.pos[0];
     sonic.col.pos[1] = sonic.pos[1];
     sonic.col.pos[2] = sonic.pos[2];
@@ -296,16 +296,18 @@ if(CollisionBool == true) {
 } 
     Collision_SpherePlaneResolve(&sonic.col,&gplane);
 
-bnb += toFIXED(0.5);
+    bnb += toFIXED(0.5);
 
-    undersonc.pos[0] = sonic.pos[0];
-    undersonc.pos[1] = sonic.pos[1] + toFIXED(10);
-    undersonc.pos[2] = sonic.pos[2];
-    undersonc.radius = toFIXED(3);
+    undersonc.pos[0] = sonic.col.pos[0];
+    undersonc.pos[1] = sonic.col.pos[1] + toFIXED(11);
+    undersonc.pos[2] = sonic.col.pos[2];
+    undersonc.radius = toFIXED(1);
 
-    slPrintFX(undersonc.pos[0],slLocate(20,7));
-    slPrintFX(undersonc.pos[1],slLocate(20,8));
-    slPrintFX(undersonc.pos[2],slLocate(20,9));
+    //slPrintFX(undersonc.pos[0],slLocate(20,7));
+    //slPrintFX(undersonc.pos[1],slLocate(20,8));
+    //slPrintFX(undersonc.pos[2],slLocate(20,9));
+        jo_3d_camera_look_at(&cam);
+
     if(CollisionBool == true) {
         if(Collision_SphereCol_bool_special(&undersonc, &colmesh) || Collision_SpherePlane_bool(&undersonc,&gplane)) sonic.gnd = true; else sonic.gnd = false;
     }
@@ -330,7 +332,6 @@ bnb += toFIXED(0.5);
     slPrintFX(slAng2FX(sonic.orientation[2]), slLocate(20,2));
 
     b += (1);
-    jo_3d_camera_look_at(&cam);
 
     FIXED pos[][XYZS] =
     {    
@@ -342,15 +343,17 @@ bnb += toFIXED(0.5);
         SPR_ATTRIBUTE(18, 0, No_Gouraud, CL32KRGB | ECdis | SPenb, sprNoflip | FUNC_Sprite | _ZmCC),
     };
 
-    ANGLE camera_rotation = slAtan(-(cam.target_pos.x - cam.viewpoint_pos.x),-(cam.target_pos.z - cam.viewpoint_pos.z));
+    //ANGLE camera_rotation = slAtan(-(cam.target_pos.x - cam.viewpoint_pos.x),-(cam.target_pos.z - cam.viewpoint_pos.z));
     
 
     slPushMatrix();
     {
         slTranslate(sonic.pos[0], sonic.pos[1], sonic.pos[2]);
         slScale(toFIXED(1),toFIXED(1),toFIXED(1));
-        slRotX(sonic.orientation[X]);
         slRotZ(sonic.orientation[Z]);
+
+                slRotX(sonic.orientation[X]);
+
 
         slRotY(sonic.orientation[Y]);
 
@@ -363,13 +366,13 @@ bnb += toFIXED(0.5);
     slPushMatrix();
     {
         slTranslate(orb1.pos[0],orb1.pos[1],orb1.pos[2]);
-        slPutPolygonX(&orbinautmodel,livec);
+        slPutPolygonX(&orbinautmodel.data,livec);
         slPutSprite((FIXED *)pos[0], (SPR_ATTR *)(&(attr[0].texno)), 0);
     }
     slPopMatrix();
 
  
-        if(viewbool)slPutPolygonX(&lvlmodel,livec);
+        if(viewbool)slPutPolygonX(&lvlmodel.data,livec);
         //slPutPolygonX(&trimesh,(VECTOR){0,0,0});
         //slPutPolygonX(&orbinautmodel,livec);
 
@@ -451,7 +454,7 @@ void			jo_main(void)
         slPrint("LVL",slLocate(0,6));
 
 
-    for(int i = 0; i < orbinautmodel.data.nbPolygon; i++) {
+    for(int i = 0; i < (int)orbinautmodel.data.nbPolygon; i++) {
     orbinautmodel.data.attbl[i].sort |= SORT_MAX; 
     }
     orb1.pos[0] = toFIXED(-10);

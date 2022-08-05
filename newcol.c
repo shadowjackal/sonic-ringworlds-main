@@ -28,6 +28,8 @@ Uint8	solve_domain(FIXED normal[XYZ]){
 	return 0;
 }
 
+
+
 __jo_force_inline FIXED		fxm(FIXED d1, FIXED d2) //Fixed Point Multiplication
 {
 	register volatile FIXED rtval;
@@ -64,114 +66,27 @@ __jo_force_inline FIXED	fxdot(FIXED * ptA, FIXED * ptB) //Fixed-point dot produc
 
 
 
-static inline FIXED dotvec3n(VECTOR vec1, VECTOR vec2) {
+static inline FIXED dotvec3n(const VECTOR vec1, const VECTOR vec2) {
     VECTOR tmp1 = { vec1[X] >> 4, vec1[Y] >> 4, vec1[Z] >> 4 };
     VECTOR tmp2 = { vec2[X] >> 4, vec2[Y] >> 4, vec2[Z] >> 4 };
     
     return slInnerProduct(tmp1, tmp2);
 }
 
-void	separateAngles(FIXED unitA[XYZ], FIXED plUN[XYZ], int degreeOut[XYZ])
-{	
-	FIXED crossXZ[XYZ];
-	FIXED crossYZ[XYZ];
-	FIXED crossYX[XYZ];
-	FIXED mcXZ;
-	FIXED mcYZ;
-	FIXED mcYX;
-	FIXED dotXZ;
-	FIXED dotYZ;
-	FIXED dotYX;
-	FIXED smuXZ[XYZ]; 
-	FIXED smuYZ[XYZ]; 
-	FIXED smuYX[XYZ]; 
-	FIXED spnXZ[XYZ]; 
-	FIXED spnYZ[XYZ]; 
-	FIXED spnYX[XYZ];
-	smuXZ[X] = unitA[X]; smuXZ[Y] = 0; smuXZ[Z] = unitA[Z];
+FIXED ANGLYSHIT(const VECTOR normal, const VECTOR up) {
+    VECTOR rotAxis;
+    vec_cross(normal, up, rotAxis);
 
-	smuYZ[X] = 0; smuYZ[Y] = unitA[Y]; smuYZ[Z] = unitA[Z];
+    FIXED dot = dotvec3n(normal, up);
+    FIXED angle = slAtan(dot, vec_length(rotAxis));
 
-	smuYX[X] = unitA[X]; smuYX[Y] = unitA[Y]; smuYX[Z] = 0;
-
-	spnXZ[X] = plUN[X]; spnXZ[Y] = 0; spnXZ[Z] = plUN[Z];
-	
-	spnYZ[X] = 0; spnYZ[Y] = plUN[Y]; spnYZ[Z] = plUN[Z];
-	
-	spnYX[X] = plUN[X]; spnYX[Y] = plUN[Y]; spnYX[Z] = 0;
-
-	vec_cross(smuXZ, spnXZ, crossXZ);
-	vec_cross(smuYZ, spnYZ, crossYZ);
-	vec_cross(smuYX, spnYX, crossYX);
-	/////////////////////////////////////////
-	// Efficient (original) version
-	// These appear to be functionally interchangeable, but I will make a note:
-	// the vector cross-products (XZ, YZ, and YX) won't be normalized, because cross-products of normals are less than normals.
-	/////////////////////////////////////////
-	mcXZ = slSquartFX(fxdot(crossXZ, crossXZ));
-	mcYZ = slSquartFX(fxdot(crossYZ, crossYZ));
-	mcYX = slSquartFX(fxdot(crossYX, crossYX));
-	/////////////////////////////////////////
-	// Mathematically correct (new) version
-	/////////////////////////////////////////
-	// int tDot = fxdot(crossXZ, crossXZ);
-	// mcXZ = slMulFX(fxdiv(1<<16, slSquartFX(tDot)), tDot);
-	// tDot = fxdot(crossYZ, crossYZ);
-	// mcYZ = slMulFX(fxdiv(1<<16, slSquartFX(tDot)), tDot);
-	// tDot = fxdot(crossYX, crossYX);
-	// mcYX = slMulFX(fxdiv(1<<16, slSquartFX(tDot)), tDot);
-	//////////////////////////////////////////
-	dotXZ = fxm(unitA[X],plUN[X]) + fxm(unitA[Z],plUN[Z]);
-	dotYZ = fxm(unitA[Y],plUN[Y]) + fxm(unitA[Z],plUN[Z]);
-	dotYX = fxm(unitA[Y],plUN[Y]) + fxm(unitA[X],plUN[X]);
-	if(mcXZ != 0 || dotXZ != 0) degreeOut[X] = (slAtan(mcXZ, dotXZ));
-	if(mcYZ != 0 || dotYZ != 0) degreeOut[Y] = (slAtan(mcYZ, dotYZ));
-	if(mcYX != 0 || dotYX != 0) degreeOut[Z] = (slAtan(mcYX, dotYX));
-	//This is currently producing angle numbers that appear like this:
-	//Degrees are relative to the plane normal as if a plane. 0 degrees is parallel to the plane, but perpendicular to the planar normal direction.
-	//Degrees 360 to 270 appear to be for angles facing away from the plane.
-	//Degrees 0 to 90 appear to be for angles facing into the plane.
-	//The sign (+/-) of the angle does not appear to be spoken of.
-	
-	//Three components: Y rot [X-Z]. Xrot [Y-Z]. Zrot [Y-X]. The exact definition of these rotations depends on the axis.
+    VECTOR angAxis;
+    vec_cross(rotAxis, up, angAxis);
+    FIXED sig = dotvec3n(normal, angAxis);
+    if (sig < 0) angle = -angle;
+    return (FIXED) angle;
 }
 
-//What is this doing?
-//It is re-processing the X and Z values of the output as if it were rotated X and Z _after_ it is rotated by output's Y.
-//This is very strange, when I think about it.
-void	sort_angle_to_domain(FIXED unitNormal[XYZ], FIXED unitOrient[XYZ], int output[XYZ])
-{
-static int angleComponents[XYZ];
-separateAngles(unitOrient, unitNormal, angleComponents);
-Uint8 domain = solve_domain(unitNormal);
-//jo_printf(0, 20, "(%i)", domain);
-// deg * 182 = angle
-if(domain == 1){ //++
-output[X] = (fxm(fxm(slSin(angleComponents[Z]), (angleComponents[Z] - 49140) ), slSin((output[Y]) - angleComponents[X])) +
-						fxm(fxm(slSin(angleComponents[Y]), (angleComponents[Y] - 49140) ), slSin((output[Y] + (90 * 182))) )); 
-output[Z] = (fxm(fxm(slSin(angleComponents[Z]), angleComponents[Z] - 49140), slCos((output[Y]) - angleComponents[X])) +
-						fxm(fxm(slSin(angleComponents[Y]), angleComponents[Y] - 49140), slCos((output[Y] + (90 * 182))) )); 
-						//return;
-} else if(domain == 2){ //-+
-output[X] = (fxm(fxm(slSin(angleComponents[Z]), (angleComponents[Z] - 49140) ), slSin((output[Y]) - angleComponents[X])) +
-						fxm(fxm(slSin(angleComponents[Y]), (angleComponents[Y] - 49140) ), slSin((output[Y] - (90 * 182))) )); 
-output[Z] = (fxm(fxm(slSin(angleComponents[Z]), angleComponents[Z] - 49140), slCos((output[Y]) - angleComponents[X])) +
-						fxm(fxm(slSin(angleComponents[Y]), angleComponents[Y] - 49140), slCos((output[Y] - (90 * 182))) )); 
-						//return;
-} else if(domain == 3){ //+-
-output[X] = -(fxm(fxm(slSin(angleComponents[Z]), (angleComponents[Z] - 49140) ), slSin((output[Y]) - angleComponents[X])) +
-						fxm(fxm(slSin(angleComponents[Y]), (angleComponents[Y] - 49140) ), slSin((output[Y] - (90 * 182))) )); 
-output[Z] = -(fxm(fxm(slSin(angleComponents[Z]), angleComponents[Z] - 49140), slCos((output[Y]) - angleComponents[X])) +
-						fxm(fxm(slSin(angleComponents[Y]), angleComponents[Y] - 49140), slCos((output[Y] - (90 * 182))) )); 
-						//return;
-} else if(domain == 4){ //--
-output[X] = -(fxm(fxm(slSin(angleComponents[Z]), (angleComponents[Z] - 49140) ), slSin((output[Y]) - angleComponents[X])) +
-						fxm(fxm(slSin(angleComponents[Y]), (angleComponents[Y] - 49140) ), slSin((output[Y] + (90 * 182))) )); 
-output[Z] = -(fxm(fxm(slSin(angleComponents[Z]), angleComponents[Z] - 49140), slCos((output[Y]) - angleComponents[X])) +
-						fxm(fxm(slSin(angleComponents[Y]), angleComponents[Y] - 49140), slCos((output[Y] + (90 * 182))) )); 
-						//return;
-}	
-}
 
 PDATA   coltri2mesh(POINT *t) {
     PDATA retdata;
@@ -221,7 +136,7 @@ void   mesh2coltri(jklmesh *m, Collision *out) {
     out->points = jo_malloc((sizeof(POINT) * 3) * m->data.nbPolygon*2);
     out->num_tris = m->data.nbPolygon*2;
     int offset = 0;
-    for(int i = 0; i < m->data.nbPolygon; i++) {
+    for(int i = 0; i < (int)m->data.nbPolygon; i++) {
     tridef(m->data.pntbl[m->data.pltbl[i].Vertices[0]],m->data.pntbl[m->data.pltbl[i].Vertices[1]],m->data.pntbl[m->data.pltbl[i].Vertices[2]],&out->points[offset]);
     tridef(m->data.pntbl[m->data.pltbl[i].Vertices[2]],m->data.pntbl[m->data.pltbl[i].Vertices[3]],m->data.pntbl[m->data.pltbl[i].Vertices[0]],&out->points[offset+3]);
     offset += 6;
@@ -342,7 +257,7 @@ bool Collision_SphereColResolve(Sphere *sphere, Collision *col) {
     bool is_hit = false;
     
     // Resolve collision against each triangle
-    for(int i = 0; i < col->num_tris; i++) {
+    for(int i = 0; i < (int)col->num_tris; i++) {
         // Get closest point on tri to the sphere centre
         if(manhattandistance(sphere->pos,col->points[i*3]) < toFIXED(150)) {
         VECTOR closest_pt;
@@ -372,8 +287,10 @@ bool Collision_SphereColResolve(Sphere *sphere, Collision *col) {
     return is_hit;
 }
 
+PDATA temporawrr;
+
 bool Collision_SpherePlaneResolve(Sphere *sphere, Plane *plane) {
-    bool is_hit = false;
+    //bool is_hit = false;
     VECTOR closest_pt;
     plane_point_closest_pt_plane(plane,sphere->pos,closest_pt);
 
@@ -389,19 +306,21 @@ bool Collision_SpherePlaneResolve(Sphere *sphere, Plane *plane) {
             vec_mul_scalar(delta, sphere->radius - (delta_dist << 4), push_back);
             
             vec_add(sphere->pos, push_back, sphere->pos);
-            is_hit = true;
+            //is_hit = true;
         }
         
     return false;
 }
 
-FIXED orient[3] = {0, -1<<16, 0};
+FIXED orient[3] = {0, -1, 0};
+VECTOR globalor = (VECTOR){0, toFIXED(-1), 0};
+
 
 bool Collision_SphereCol_bool(Sphere *sphere, Collision *col) {
     bool is_hit = false;
     
     // Resolve collision against each triangle
-    for(int i = 0; i < col->num_tris; i++) {
+    for(int i = 0; i < (int)col->num_tris; i++) {
         if(manhattandistance(sphere->pos,col->points[i]) < toFIXED(300)) {
         // Get closest point on tri to the sphere centre
         VECTOR closest_pt;
@@ -419,6 +338,13 @@ bool Collision_SphereCol_bool(Sphere *sphere, Collision *col) {
     }}
     
     return is_hit;
+}
+
+void vec_normalize_new(VECTOR vec) {
+    FIXED w = slSquartFX(slMulFX(vec[0]>>8, vec[0]>>8) + slMulFX(vec[1]>>8, vec[1]>>8) + slMulFX(vec[2]>>8, vec[2]>>8));
+    vec[0] = slDivFX(vec[0],w);
+    vec[1] = slDivFX(vec[1],w);
+    vec[2] = slDivFX(vec[2],w);
 }
 
 
@@ -440,10 +366,13 @@ bool Collision_SphereCol_bool_special(Sphere *sphere, Collision *col) {
             is_hit = true;
             FIXED normies[3];
 
+
             VECTOR U;
-            vec_sub(col->points[(tobecheck[i]+1)*3],col->points[tobecheck[i]*3],U);
+            vec_sub(col->points[(tobecheck[i]*3)+1],col->points[tobecheck[i]*3],U);
+            vec_normalize(U);
             VECTOR V;
-            vec_sub(col->points[(tobecheck[i]+2)*3],col->points[tobecheck[i]*3],V);
+            vec_normalize(V);
+            vec_sub(col->points[(tobecheck[i]*3)+2],col->points[tobecheck[i]*3],V);
 
             normies[X] = (slMulFX(U[Y],V[Z])) - (slMulFX(U[Z],V[Y]));
             normies[Y] = (slMulFX(U[Z],V[X])) - (slMulFX(U[X],V[Z]));
@@ -451,13 +380,30 @@ bool Collision_SphereCol_bool_special(Sphere *sphere, Collision *col) {
 
             vec_normalize(normies);
 
-            slPrintFX(toFIXED(normies[X]), slLocate(20,4));
-            slPrintFX(toFIXED(normies[Y]), slLocate(20,5));
-            slPrintFX(toFIXED(normies[Z]), slLocate(20,6));
+            slPrintFX(normies[X], slLocate(20,4));            
+            slPrintFX(normies[Y], slLocate(20,5));            
+            slPrintFX(normies[Z], slLocate(20,6));            
 
+
+            slPrintFX(globalor[X], slLocate(20,10));            
+            slPrintFX(globalor[Y], slLocate(20,11));            
+            slPrintFX(globalor[Z], slLocate(20,12));   
 
             sonic.orientation[X] = LerpAng(sonic.orientation[X], slAtan(JO_ABS(normies[Y]), normies[Z]),toFIXED(0.25));
-            sonic.orientation[Z] = LerpAng(sonic.orientation[Z], slAtan(JO_ABS(normies[Y]), normies[X]),toFIXED(0.25));
+            sonic.orientation[Z] = LerpAng(sonic.orientation[Z], slAtan(JO_ABS(normies[Y]), normies[X]),toFIXED(0.25));                  
+
+            FIXED anglerfish;
+
+            slPrintFX((anglerfish),slLocate(20,8));
+            //slPrintFX(slAng2FX(sonic.orientation[X]),slLocate(20,9));
+            
+        //    temporawrr = coltri2mesh(&col->points[tobecheck[i]*3]);
+        //slPushMatrix();
+        //{
+        //    slTranslate(0,0,0);
+        //    slPutPolygonX(&temporawrr,(VECTOR){0,0,0});
+        //}
+        slPopMatrix();
 
             return is_hit;
         }
@@ -466,8 +412,9 @@ bool Collision_SphereCol_bool_special(Sphere *sphere, Collision *col) {
     return is_hit;
 }
 
+
 bool Collision_SpherePlane_bool(Sphere *sphere, Plane *plane) {
-    bool is_hit = false;
+   // bool is_hit = false;
     VECTOR closest_pt;
     plane_point_closest_pt_plane(plane,sphere->pos,closest_pt);
 
@@ -478,7 +425,7 @@ bool Collision_SpherePlane_bool(Sphere *sphere, Plane *plane) {
 
             if(delta_dist < (sphere->radius >> 4)) {
             
-            is_hit = true;
+          //  is_hit = true;
         }
         
     return false;

@@ -20,10 +20,12 @@ static inline ANGLE LerpAng(const ANGLE A, const ANGLE B, const FIXED F) {
     
     FIXED diff = (B_to_FX - A_to_FX);
     
-    if(diff > toFIXED(180.0))
+    if(diff > toFIXED(180.0)) {
         A_to_FX += toFIXED(360.0);
-    else if(diff < toFIXED(-180.0))
+    }
+    else if(diff < toFIXED(-180.0)) {
         B_to_FX += toFIXED(360.0);
+    }
     
     FIXED res = Lerp(A_to_FX, B_to_FX, F);
     
@@ -32,9 +34,12 @@ static inline ANGLE LerpAng(const ANGLE A, const ANGLE B, const FIXED F) {
 
 static inline ANGLE Arccos(const FIXED x) {
 	if(x > toFIXED(1.0))
+    {
         return DEGtoANG(0.0);
-    else if(x < toFIXED(-1.0))
+    }
+    else if(x < toFIXED(-1.0)) {
         return DEGtoANG(180.0);
+    }
     
 	return slAtan(slDivFX(slSquartFX(toFIXED(1.0) - slMulFX(x, x)), x), toFIXED(1.0));
 }
@@ -56,11 +61,11 @@ static inline FIXED vec_length(VECTOR vec) {
 }
 
 static inline FIXED manhattandistance2d(VECTOR vec, VECTOR vec2) {
-    return abs(vec[0]-vec2[0]) + abs(vec[2]-vec2[2]);
+    return JO_ABS(vec[0]-vec2[0]) + JO_ABS(vec[2]-vec2[2]);
 }
 
 static inline FIXED manhattandistance(VECTOR vec, VECTOR vec2) {
-    return abs(vec[0]-vec2[0]) + abs(vec[1]-vec2[1]) + abs(vec[2]-vec2[2]);
+    return JO_ABS(vec[0]-vec2[0]) + JO_ABS(vec[1]-vec2[1]) + JO_ABS(vec[2]-vec2[2]);
 }
 
 
@@ -133,10 +138,7 @@ static inline void vec_normalize(VECTOR vec) {
     vec_mul_scalar(vec, k, vec);
 }
 
-static inline void vec_normalize_new(VECTOR vec) {
-   FIXED length_of_v = slSquartFX(slMulFX(vec[X], vec[X]) + slMulFX(vec[Y], vec[Y]) + slMulFX(vec[Z], vec[Z]));
-   vec = (VECTOR){slDivFX(vec[X], length_of_v), slDivFX(vec[Y], length_of_v), slDivFX(vec[Z], length_of_v)};
-}
+
 
 
 static inline void vec_rotate_about(VECTOR p, VECTOR v, ANGLE a, VECTOR out) {
