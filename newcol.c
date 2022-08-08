@@ -397,13 +397,13 @@ bool Collision_SphereCol_bool_special(Sphere *sphere, Collision *col) {
             slPrintFX((anglerfish),slLocate(20,8));
             //slPrintFX(slAng2FX(sonic.orientation[X]),slLocate(20,9));
             
-        //    temporawrr = coltri2mesh(&col->points[tobecheck[i]*3]);
-        //slPushMatrix();
-        //{
-        //    slTranslate(0,0,0);
-        //    slPutPolygonX(&temporawrr,(VECTOR){0,0,0});
-        //}
-        slPopMatrix();
+       //     temporawrr = coltri2mesh(&col->points[tobecheck[i]*3]);
+       // slPushMatrix();
+       // {
+       //     slTranslate(0,0,0);
+       //     slPutPolygonX(&temporawrr,(VECTOR){0,0,0});
+       // }
+       // slPopMatrix();
 
             return is_hit;
         }
@@ -429,4 +429,13 @@ bool Collision_SpherePlane_bool(Sphere *sphere, Plane *plane) {
         }
         
     return false;
+}
+
+bool Collision_SphereSphere(Sphere *sph1, Sphere *sph2) {
+    VECTOR delta;
+    vec_sub(sph1->pos, sph2->pos, delta);
+
+    FIXED delta_dist = slSquartFX(dotvec3n(delta, delta));
+
+    return((delta_dist + sph2->radius>>4) < (sph1->radius >> 4));
 }

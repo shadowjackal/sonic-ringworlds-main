@@ -23,6 +23,7 @@ typedef struct playerobject {
     Sphere col;
     int state; // action state (walking, runnning, holding item, etc)
     bool gnd;
+    bool jmp;
     //ANGLE rot; // where sonic is facing relative to the ground
     ROTATE orientation; // which way his body is facing
     ANGLE yrot;
@@ -30,6 +31,11 @@ typedef struct playerobject {
     FIXED traction;
     FIXED max_speed;
 } playerobject;
+
+typedef struct rungles {
+    Sphere col;
+    bool collectedornot;
+} rungles;
 
 extern playerobject sonic;
 
@@ -41,5 +47,6 @@ bool Collision_SpherePlaneResolve(Sphere *sphere, Plane *plane);
 bool Collision_SphereCol_bool(Sphere *sphere, Collision *col);
 bool Collision_SpherePlane_bool(Sphere *sphere, Plane *plane);
 bool Collision_SphereCol_bool_special(Sphere *sphere, Collision *col);
+bool Collision_SphereSphere(Sphere *sph1, Sphere *sph2);
 
 #endif

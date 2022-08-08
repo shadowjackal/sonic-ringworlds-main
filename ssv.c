@@ -232,17 +232,17 @@ jklmesh                ssv_load(char *file_input, int textureoffset, bool gourau
     jo_printf(0,4,"frame %d",mesh.framecount);
     offset += sizeof(unsigned int);
 
-    mesh.rdata = (JKLR *)jo_malloc_with_behaviour(mesh.framecount * sizeof(*mesh.rdata),JO_MALLOC_TRY_REUSE_SAME_BLOCK_SIZE);
+    mesh.rdata = (JKLR *)jo_malloc(mesh.framecount * sizeof(*mesh.rdata));
 
-    mesh.data.pntbl = (POINT *)jo_malloc_with_behaviour(mesh.data.nbPoint * sizeof(*mesh.data.pntbl),JO_MALLOC_TRY_REUSE_SAME_BLOCK_SIZE);
-    mesh.data.vntbl = (VECTOR *)jo_malloc_with_behaviour(mesh.data.nbPoint * sizeof(*mesh.data.vntbl),JO_MALLOC_TRY_REUSE_SAME_BLOCK_SIZE);
+    mesh.data.pntbl = (POINT *)jo_malloc(mesh.data.nbPoint * sizeof(*mesh.data.pntbl));
+    mesh.data.vntbl = (VECTOR *)jo_malloc(mesh.data.nbPoint * sizeof(*mesh.data.vntbl));
 
     for(int i = 0; i < (int)mesh.framecount; i++) {
-        mesh.rdata[i].pntbl = (POINT *)jo_malloc_with_behaviour(mesh.data.nbPoint * sizeof(*mesh.data.pntbl),JO_MALLOC_TRY_REUSE_SAME_BLOCK_SIZE);
+        mesh.rdata[i].pntbl = (POINT *)jo_malloc(mesh.data.nbPoint * sizeof(*mesh.data.pntbl));
     }
     
     
-    mesh.data.pltbl = (POLYGON *)jo_malloc_with_behaviour(mesh.data.nbPolygon * sizeof(*mesh.data.pltbl),JO_MALLOC_TRY_REUSE_SAME_BLOCK_SIZE);
+    mesh.data.pltbl = (POLYGON *)jo_malloc(mesh.data.nbPolygon * sizeof(*mesh.data.pltbl));
     for(int i = 0; i < (int)mesh.data.nbPolygon; i++) {
     for(int ii = 0; ii < 4; ii++){
         memcpy(&mesh.data.pltbl[i].Vertices[ii], &stream[offset], sizeof(short));
@@ -273,7 +273,7 @@ jklmesh                ssv_load(char *file_input, int textureoffset, bool gourau
 
 
     for(int i = 0; i < mesh.framecount; i++) {
-    mesh.rdata[i].fnorm = jo_malloc_with_behaviour(sizeof(Uint32)*mesh.data.nbPolygon,JO_MALLOC_TRY_REUSE_SAME_BLOCK_SIZE);
+    mesh.rdata[i].fnorm = jo_malloc(sizeof(Uint32)*mesh.data.nbPolygon);
     }
 
     for(int i = 0; i < (int)mesh.framecount; i++) {
@@ -284,7 +284,7 @@ jklmesh                ssv_load(char *file_input, int textureoffset, bool gourau
     }
 //
     for(int i = 0; i < (int)mesh.framecount; i++) {
-    mesh.rdata[i].vnorm = jo_malloc_with_behaviour(sizeof(Uint32)*mesh.data.nbPoint,JO_MALLOC_TRY_REUSE_SAME_BLOCK_SIZE);
+    mesh.rdata[i].vnorm = jo_malloc(sizeof(Uint32)*mesh.data.nbPoint);
     }
 //
     for(int i = 0; i < (int)mesh.framecount; i++) {
@@ -309,7 +309,7 @@ jklmesh                ssv_load(char *file_input, int textureoffset, bool gourau
     }
 
     //sets attributes of faces (transparency, mesh effect, etc)
-    mesh.data.attbl = (ATTR *)jo_malloc_with_behaviour(mesh.data.nbPolygon * sizeof(*mesh.data.attbl), JO_MALLOC_TRY_REUSE_SAME_BLOCK_SIZE);
+    mesh.data.attbl = (ATTR *)jo_malloc(mesh.data.nbPolygon * sizeof(*mesh.data.attbl));
     for(int i = 0; i < (int)mesh.data.nbPolygon; i++)
     {
         //jo_color coloroid = JO_COLOR_SATURN_RGB(colorrgb[i][0],colorrgb[i][1],colorrgb[i][2]);
@@ -340,7 +340,13 @@ jklmesh                ssv_load(char *file_input, int textureoffset, bool gourau
         }
         
     }    
-    if(staticd == true) jo_free(mesh.rdata->pntbl);
+    if(staticd == true) {
+    for(int i = 0; i < mesh.framecount; i++) {
+    jo_free(mesh.rdata[i].fnorm);
+    jo_free(mesh.rdata[i].vnorm);
+    jo_free(mesh.rdata[i].pntbl);
+    }
+    }
     return mesh;
 }
 

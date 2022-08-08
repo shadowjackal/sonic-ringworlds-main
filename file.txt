@@ -1,11 +1,4 @@
 This is the order of materials/textures, use these when loading textures into JO_ENGINE or SGL
-Material : MAT10 | Texture : 15.png
-Material : MAT11 | Texture : 13.png
-Material : MAT12 | Texture : 32.png
-Material : MAT14 | Texture : 3.png
-Material : MAT15 | Texture : 4.png
-Material : MAT16 | Texture : 3D.png
-Material : MAT17 | Texture : 4D.png
 Material : MAT2 | Texture : 24.png
 Material : MAT3 | Texture : 24B.png
 Material : MAT4 | Texture : 29.png

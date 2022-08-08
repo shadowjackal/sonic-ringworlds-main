@@ -56,7 +56,7 @@ FIXED zpitch;
 FIXED zroll;
 FIXED zyaw;
 FIXED livec[XYZ];
-bool CollisionBool = false;
+bool CollisionBool = true;
 bool viewbool = true;
 
 
@@ -187,21 +187,34 @@ void                my_gamepad(void)
         //rotate camera around player, but keep player in place 
         camera_rotate(-400);
     }
-    //if (jo_is_input_key_pressed(0, JO_KEY_X));
+
+
+    if (jo_is_input_key_pressed(0, JO_KEY_X)) {
+        frame -= 1;
+    };
 
     if (jo_is_input_key_down(0, JO_KEY_Y))
         CollisionBool = !CollisionBool;
     if (jo_is_input_key_down(0, JO_KEY_Z))
         viewbool = !viewbool;
 
-    if (jo_is_input_key_down(0, JO_KEY_A))
-        sonic.pos[Y] -= toFIXED(1);
-    if (jo_is_input_key_down(0, JO_KEY_B))
-        sonic.pos[Y] += toFIXED(1);
 
-    if(jump) {
-        sonic.pos[Y] += 1;
+    if (jo_is_input_key_down(0, JO_KEY_A) && sonic.gnd == true) {
+        sonic.spd[Y] = -toFIXED(4);
+        sonic.spd[X] += slMulFX(toFIXED(5), slSin(sonic.orientation[Z]));
+        sonic.spd[Z] += slMulFX(toFIXED(5), slSin(sonic.orientation[X]));
+        sonic.gnd = false;
+        sonic.jmp = true;
     }
+
+
+    if (jo_is_input_key_down(0, JO_KEY_B))
+        sonic.pos[Y] -= toFIXED(25);
+
+    if (jo_is_input_key_down(0, JO_KEY_C))
+        frame += 1;
+
+  
 
     //applying traction among all axises with a normal rate (no brakes)
     for (int i=0;i<3;i++)
@@ -233,13 +246,26 @@ void                my_gamepad(void)
     if ( (sonic.spd[X]!=0) && (sonic.spd[Z]!=0) )
         sonic.orientation[Y] = slAtan(-sonic.spd[X],sonic.spd[Z]);
 
+    if(sonic.gnd == false) {
+        sonic.orientation[X] = LerpAng(sonic.orientation[X],toFIXED(0),toFIXED(0.10));
+        sonic.orientation[Z] = LerpAng(sonic.orientation[Z],toFIXED(0),toFIXED(0.10));
+    };
+
     //coordinate update
-    for (int i=0;i<3;i++)
+    for (int i=0;i<3;i+=2){
         sonic.pos[i] += sonic.spd[i];
+    }
+
+
+    sonic.pos[Y] += slMulFX(sonic.spd[X], slSin(sonic.orientation[Z])) + slMulFX(sonic.spd[Z], slSin(sonic.orientation[X])) ;
+    sonic.pos[Y]+= sonic.spd[Y];
+
 }
 
 Plane gplane;
     Sphere undersonc;   
+
+rungles ringlist[20];
 
 
 void othercollision(void) {
@@ -247,10 +273,13 @@ void othercollision(void) {
 }
     FIXED bnb = 0;
 
+    float ringframe = 0;
 
 void			    my_draw(void)
 {
     my_gamepad();
+
+    
  
     cam.viewpoint_pos.y = toFIXED(-35);
     //FIXED campos[XYZ];
@@ -280,8 +309,8 @@ void			    my_draw(void)
     if (dist_sq > toFIXED(2500))
     {
         //move camera closer1
-        camera_speed_x = slMulFX((cam.target_pos.x - cam.viewpoint_pos.x),toFIXED(0.05));
-        camera_speed_z = slMulFX((cam.target_pos.z - cam.viewpoint_pos.z),toFIXED(0.05));
+        camera_speed_x = slMulFX((cam.target_pos.x - cam.viewpoint_pos.x),toFIXED(0.08));
+        camera_speed_z = slMulFX((cam.target_pos.z - cam.viewpoint_pos.z),toFIXED(0.08));
     }
     else
     {
@@ -294,14 +323,15 @@ if(CollisionBool == true) {
    // sonic.gnd = true;
     } //else sonic.gnd = false;
 } 
-    Collision_SpherePlaneResolve(&sonic.col,&gplane);
+    //Collision_SpherePlaneResolve(&sonic.col,&gplane);
 
-    bnb += toFIXED(0.5);
+    bnb -= toFIXED(0.65);
+    if(bnb < toFIXED(-5)) bnb = 0;
 
     undersonc.pos[0] = sonic.col.pos[0];
     undersonc.pos[1] = sonic.col.pos[1] + toFIXED(11);
     undersonc.pos[2] = sonic.col.pos[2];
-    undersonc.radius = toFIXED(1);
+    undersonc.radius = toFIXED(2);
 
     //slPrintFX(undersonc.pos[0],slLocate(20,7));
     //slPrintFX(undersonc.pos[1],slLocate(20,8));
@@ -309,9 +339,13 @@ if(CollisionBool == true) {
         jo_3d_camera_look_at(&cam);
 
     if(CollisionBool == true) {
-        if(Collision_SphereCol_bool_special(&undersonc, &colmesh) || Collision_SpherePlane_bool(&undersonc,&gplane)) sonic.gnd = true; else sonic.gnd = false;
+        if(Collision_SphereCol_bool_special(&undersonc, &colmesh) || Collision_SpherePlane_bool(&undersonc,&gplane)) {sonic.gnd = true; 
+        sonic.jmp = false;}else sonic.gnd = true;
     }
-    if(sonic.gnd == false)  {sonic.col.pos[1] += toFIXED(1);};
+    if(sonic.gnd == false)  {sonic.spd[1] += toFIXED(0.15);} else {
+        sonic.spd[1] = 0;
+        //sonic.jmp == false;
+    }
     sonic.pos[0] = sonic.col.pos[0];
     sonic.pos[1] = sonic.col.pos[1];
     sonic.pos[2] = sonic.col.pos[2];
@@ -320,9 +354,39 @@ if(CollisionBool == true) {
 
     //jo_core_exec_on_slave(othercollision);
 
+    int animstart = 0;
+    int animend = 0;
 
-    //fframe += 0.25;
-    if(fframe >= 80) fframe = 0;
+    if((JO_ABS(sonic.spd[X]) >= toFIXED(0) || JO_ABS(sonic.spd[Z]) >= toFIXED(0)) && ((JO_ABS(sonic.spd[X]) < toFIXED(0.049) || JO_ABS(sonic.spd[Z]) < toFIXED(0.049)))) {
+            animstart = 0; 
+            animend = 8;
+    };
+
+    if((JO_ABS(sonic.spd[X]) >= toFIXED(0.05) || JO_ABS(sonic.spd[Z]) >= toFIXED(0.05)) && ((JO_ABS(sonic.spd[X]) < toFIXED(3) || JO_ABS(sonic.spd[Z]) < toFIXED(3)))) {
+            animstart = 21; 
+            animend = 37;
+    };
+
+    if((JO_ABS(sonic.spd[X]) > toFIXED(3) || JO_ABS(sonic.spd[Z]) > toFIXED(3)) && ((JO_ABS(sonic.spd[X]) < toFIXED(5) || JO_ABS(sonic.spd[Z]) < toFIXED(5)))) {
+            animstart = 38; 
+            animend = 58;
+    };
+
+    if((JO_ABS(sonic.spd[X]) > toFIXED(5) || JO_ABS(sonic.spd[Z]) > toFIXED(5)) && ((JO_ABS(sonic.spd[X]) < toFIXED(10) || JO_ABS(sonic.spd[Z]) < toFIXED(10)))) {
+            animstart = 59; 
+            animend = 63;
+    };
+    //if()
+    //if()
+    jo_vdp2_clear_bitmap_nbg1(JO_COLOR_Black);
+
+
+    fframe += 0.25;
+    if(fframe >= animend) fframe = animstart;
+    if(fframe < animstart) fframe = animstart;
+
+
+    ssv_update(&player,fframe);
 
     slPrintFX((sonic.pos[0]),slLocate(0,0));
     slPrintFX((sonic.pos[1]),slLocate(0,1));
@@ -343,33 +407,55 @@ if(CollisionBool == true) {
         SPR_ATTRIBUTE(18, 0, No_Gouraud, CL32KRGB | ECdis | SPenb, sprNoflip | FUNC_Sprite | _ZmCC),
     };
 
+    ringframe += 0.15f;
+        
+    SPR_ATTR ringattr[] =
+    {
+        SPR_ATTRIBUTE((int)ringframe+21, 0, No_Gouraud, CL32KRGB | ECdis | SPenb, sprNoflip | FUNC_Sprite | _ZmCC),
+    };
+
     //ANGLE camera_rotation = slAtan(-(cam.target_pos.x - cam.viewpoint_pos.x),-(cam.target_pos.z - cam.viewpoint_pos.z));
     
 
     slPushMatrix();
     {
         slTranslate(sonic.pos[0], sonic.pos[1], sonic.pos[2]);
-        slScale(toFIXED(1),toFIXED(1),toFIXED(1));
-        slRotZ(sonic.orientation[Z]);
+        if(sonic.jmp != true)slScale(toFIXED(1),toFIXED(1),toFIXED(1)); else slScale(toFIXED(2),toFIXED(2),toFIXED(2));
+        if(sonic.jmp != true)slRotZ(sonic.orientation[Z]);
+        if(sonic.jmp != true)slRotX(sonic.orientation[X]); else slRotX(DEGtoANG(bnb));
+        if(sonic.jmp != true)slRotY(sonic.orientation[Y]); else slRotY(sonic.orientation[Y]+DEGtoANG(90));
 
-                slRotX(sonic.orientation[X]);
-
-
-        slRotY(sonic.orientation[Y]);
-
-        slPutPolygonX(&player.data, livec);
+        if(sonic.jmp == false)slPutPolygonX(&player.data, livec); else slPutPolygonX(&player0.data, livec);
     }
     slPopMatrix();
 
-
+    if(ringframe > 4) ringframe = 0;
 
     slPushMatrix();
     {
         slTranslate(orb1.pos[0],orb1.pos[1],orb1.pos[2]);
-        slPutPolygonX(&orbinautmodel.data,livec);
-        slPutSprite((FIXED *)pos[0], (SPR_ATTR *)(&(attr[0].texno)), 0);
+    //    slPutPolygonX(&orbinautmodel.data,livec);
+    //    slPutSprite((FIXED *)pos[0], (SPR_ATTR *)(&(attr[0].texno)), 0);
     }
     slPopMatrix();
+
+    for(int i = 0; i < 20; i++) {
+        if(ringlist[i].collectedornot == false)ringlist[i].collectedornot = Collision_SphereSphere(&sonic.col, &ringlist[i].col);
+    }
+
+
+    for(int i = 0; i < 20; i++) {
+    if(ringlist[i].collectedornot == false) {
+    slPushMatrix();
+    {
+    FIXED POSSY[][XYZS] =
+    {    
+        {ringlist[i].col.pos[0], ringlist[i].col.pos[1], ringlist[i].col.pos[2],toFIXED(0.5)},   
+    };        slPutSprite((FIXED *)POSSY[0], (SPR_ATTR *)(&(ringattr[0].texno)), 0);
+    }
+    slPopMatrix();
+    }}
+
 
  
         if(viewbool)slPutPolygonX(&lvlmodel.data,livec);
@@ -384,7 +470,7 @@ if(CollisionBool == true) {
         slRotX(DEGtoANG(90));
         slRotY(DEGtoANG(0));
         slRotZ(DEGtoANG(0));
-        jo_background_3d_plane_a_draw(true);
+        // /jo_background_3d_plane_a_draw(true);
     }
     jo_3d_pop_matrix();
 
@@ -395,7 +481,7 @@ if(CollisionBool == true) {
         slRotX(DEGtoANG(90));
         slRotY(DEGtoANG(0));
         slRotZ(DEGtoANG(0));
-        jo_background_3d_plane_b_draw(true);
+       // jo_background_3d_plane_b_draw(true);
     }
     jo_3d_pop_matrix();
 
@@ -409,6 +495,8 @@ jo_palette          *my_tga_palette_handling(void)
     return (&image_pal);
 }
 
+
+
 void			jo_main(void)
 {      
 
@@ -417,15 +505,26 @@ void			jo_main(void)
     slSetGouraudTbl(GourTbl);
         jo_add_memory_zone((unsigned char *)LWRAM, LWRAM_HEAP_SIZE);
 
-	jo_core_init(JO_COLOR_Blue);
 
+
+	jo_core_init(JO_COLOR_Blue);
 
     jo_3d_camera_init(&cam);
 
+    jo_set_tga_palette_handling(my_tga_palette_handling);    //jo_set_tga_palette_handling(&image_pal);
+
+    jo_img_8bits    img;
+
+   // img.data = JO_NULL;
+   // jo_tga_8bits_loader(&img, JO_ROOT_DIR, "BGI.TGA", 0);
+   // jo_vdp2_set_nbg1_8bits_image(&img, image_pal.id, true);
+   // jo_free_img(&img);
+jo_vdp2_clear_bitmap_nbg1(JO_COLOR_Black);
+
     //colmesh.points = HWRAM;
-    sonic.acceleration = toFIXED(0.3f);
-    sonic.traction = toFIXED(0.2f);
-    sonic.max_speed = toFIXED(4.5f);
+    sonic.acceleration = toFIXED(0.1f);
+    sonic.traction = toFIXED(0.05f);
+    sonic.max_speed = toFIXED(8);
 
     cam.viewpoint_pos.x = toFIXED(-20);
     cam.viewpoint_pos.y = toFIXED(-20);
@@ -447,16 +546,24 @@ void			jo_main(void)
     player0 = ssv_load("BAL.SSV",14,true,false);
         slPrint("BAL",slLocate(0,6));
 
-    orbinautmodel = ssv_load("ORB.SSV",19,false,false);
+   // orbinautmodel = ssv_load("ORB.SSV",19,false,false);
         slPrint("ORB",slLocate(0,6));
 
-    lvlmodel = ssv_load("LV0.SSV",20,true,false);
-        slPrint("LVL",slLocate(0,6));
+    //lvlmodel = ssv_load("TNL.SSV",20,true,false);
+    //    slPrint("LVL",slLocate(0,6));
+//
+    //mesh2coltri(&lvlmodel,&colmesh);
+//
+    //jo_free(lvlmodel.rdata->fnorm);
+    //jo_free(lvlmodel.rdata->vnorm);
+    //jo_free(lvlmodel.rdata->pntbl);
+    //jo_free(lvlmodel.data.pntbl);
+    //jo_free(lvlmodel.data.vntbl);
+    //jo_free(lvlmodel.data.pltbl);
+  //  jo_free(lvlmodel.data.attbl);
+    lvlmodel = ssv_load("TNL.SSV",25,false,false);
 
 
-    for(int i = 0; i < (int)orbinautmodel.data.nbPolygon; i++) {
-    orbinautmodel.data.attbl[i].sort |= SORT_MAX; 
-    }
     orb1.pos[0] = toFIXED(-10);
     orb1.pos[1] = toFIXED(-10);
     orb1.pos[2] = toFIXED(-10);
@@ -494,24 +601,39 @@ void			jo_main(void)
     jo_sprite_add_tga("22","RG1.TGA",JO_COLOR_Transparent);
     jo_sprite_add_tga("23","RG2.TGA",JO_COLOR_Transparent);
     jo_sprite_add_tga("24","RG3.TGA",JO_COLOR_Transparent);
+    //jo_sprite_add_tga("25","18.TGA",JO_COLOR_Transparent);
+    //jo_sprite_add_tga("26","20.TGA",JO_COLOR_Transparent);
+    //jo_sprite_add_tga("27","26.TGA",JO_COLOR_Transparent);
+    //jo_sprite_add_tga("28","13.TGA",JO_COLOR_Transparent);
+    //jo_sprite_add_tga("29","25.TGA",JO_COLOR_Transparent);
+    //jo_sprite_add_tga("30","16.TGA",JO_COLOR_Transparent);
+    jo_sprite_add_tga("25","TN1.TGA",JO_COLOR_Transparent);
+    jo_sprite_add_tga("26","TN2.TGA",JO_COLOR_Transparent);
+    jo_sprite_add_tga("27","TN3.TGA",JO_COLOR_Transparent);
+    jo_sprite_add_tga("28","TN4.TGA",JO_COLOR_Transparent);
+    jo_sprite_add_tga("29","TN5.TGA",JO_COLOR_Transparent);
+    jo_sprite_add_tga("30","TN6.TGA",JO_COLOR_Transparent);
+    jo_sprite_add_tga("31","TN7.TGA",JO_COLOR_Transparent);
+    jo_sprite_add_tga("32","TN8.TGA",JO_COLOR_Transparent);
+    jo_sprite_add_tga("33","TN9.TGA",JO_COLOR_Transparent);
+    jo_sprite_add_tga("34","TN10.TGA",JO_COLOR_Transparent);
+    jo_sprite_add_tga("35","TN11.TGA",JO_COLOR_Transparent);
+    jo_sprite_add_tga("36","TN12.TGA",JO_COLOR_Transparent);
+    jo_sprite_add_tga("37","TN13.TGA",JO_COLOR_Transparent);
+    jo_sprite_add_tga("38","TN14.TGA",JO_COLOR_Transparent);
 
-    mesh2coltri(&lvlmodel,&colmesh);
 
-    jo_free(lvlmodel.rdata->fnorm);
-    jo_free(lvlmodel.rdata->vnorm);
-    jo_free(lvlmodel.rdata->pntbl);
-    jo_free(lvlmodel.data.pntbl);
-    jo_free(lvlmodel.data.vntbl);
-    jo_free(lvlmodel.data.pltbl);
-    jo_free(lvlmodel.data.attbl);
-    lvlmodel = ssv_load("TRH.SSV",20,true,false);
 
+    for(int i = 0; i < (int)lvlmodel.data.nbPolygon; i++) {
+    lvlmodel.data.attbl[i].sort |= SORT_MAX; 
+    }
 //
     sonic.col.radius = toFIXED(11);
-    jo_set_tga_palette_handling(my_tga_palette_handling);    //jo_set_tga_palette_handling(&image_pal);
-    jo_img_8bits    img;
 
     jo_enable_background_3d_plane(JO_COLOR_Black);
+
+
+    	//jo_printf(0, 0, jo_get_last_error());
 
     // FLOOR
     img.data = JO_NULL;
@@ -520,10 +642,99 @@ void			jo_main(void)
     jo_free_img(&img);
 
     img.data = JO_NULL;
-    jo_tga_8bits_loader(&img, JO_ROOT_DIR, "SKY.TGA", 0);
+    jo_tga_8bits_loader(&img, JO_ROOT_DIR, "SKY.TGA", 1);
     jo_background_3d_plane_b_img(&img, image_pal.id, true, true);
     //jo_core_add_callback(my_gamepad);
     jo_free_img(&img);
+
+    for(int i = 0; i < 20; i++) {
+    ringlist[i].collectedornot = false;
+    ringlist[i].col.radius = toFIXED(10);
+    }
+
+    ringlist[0].col.pos[0] = toFIXED(-30);
+    ringlist[0].col.pos[1] = toFIXED(-10);
+    ringlist[0].col.pos[2] = toFIXED(0);
+
+    ringlist[1].col.pos[0] = toFIXED(-30);
+    ringlist[1].col.pos[1] = toFIXED(-10);
+    ringlist[1].col.pos[2] = toFIXED(-50);
+
+    ringlist[2].col.pos[0] = toFIXED(-30);
+    ringlist[2].col.pos[1] = toFIXED(-10);
+    ringlist[2].col.pos[2] = toFIXED(-100);
+
+    ringlist[3].col.pos[0] = toFIXED(-30);
+    ringlist[3].col.pos[1] = toFIXED(-10);
+    ringlist[3].col.pos[2] = toFIXED(-150);
+
+    ringlist[4].col.pos[0] = toFIXED(-30);
+    ringlist[4].col.pos[1] = toFIXED(-10);
+    ringlist[4].col.pos[2] = toFIXED(-200);
+
+    ringlist[5].col.pos[0] = toFIXED(-45);
+    ringlist[5].col.pos[1] = toFIXED(-15);
+    ringlist[5].col.pos[2] = toFIXED(-400);
+
+    ringlist[6].col.pos[0] = toFIXED(-45);
+    ringlist[6].col.pos[1] = toFIXED(-15);
+    ringlist[6].col.pos[2] = toFIXED(-450);
+
+    ringlist[7].col.pos[0] = toFIXED(-45);
+    ringlist[7].col.pos[1] = toFIXED(-15);
+    ringlist[7].col.pos[2] = toFIXED(-500);
+
+    ringlist[8].col.pos[0] = toFIXED(-45);
+    ringlist[8].col.pos[1] = toFIXED(-15);
+    ringlist[8].col.pos[2] = toFIXED(-550);
+
+    ringlist[9].col.pos[0] = toFIXED(-45);
+    ringlist[9].col.pos[1] = toFIXED(-15);
+    ringlist[9].col.pos[2] = toFIXED(-600);
+
+    ringlist[10].col.pos[0] = toFIXED(-50);
+    ringlist[10].col.pos[1] = toFIXED(-10);
+    ringlist[10].col.pos[2] = toFIXED(200);
+
+    ringlist[11].col.pos[0] = toFIXED(-50);
+    ringlist[11].col.pos[1] = toFIXED(-10);
+    ringlist[11].col.pos[2] = toFIXED(150);
+
+    ringlist[12].col.pos[0] = toFIXED(-50);
+    ringlist[12].col.pos[1] = toFIXED(-10);
+    ringlist[12].col.pos[2] = toFIXED(200);
+
+    ringlist[13].col.pos[0] = toFIXED(-50);
+    ringlist[13].col.pos[1] = toFIXED(-15);
+    ringlist[13].col.pos[2] = toFIXED(250);
+
+    ringlist[14].col.pos[0] = toFIXED(-50);
+    ringlist[14].col.pos[1] = toFIXED(-15);
+    ringlist[14].col.pos[2] = toFIXED(300);
+
+    ringlist[15].col.pos[0] = toFIXED(-50);
+    ringlist[15].col.pos[1] = toFIXED(-15);
+    ringlist[15].col.pos[2] = toFIXED(350);
+
+    ringlist[16].col.pos[0] = toFIXED(-50);
+    ringlist[16].col.pos[1] = toFIXED(-15);
+    ringlist[16].col.pos[2] = toFIXED(400);
+
+    ringlist[17].col.pos[0] = toFIXED(-50);
+    ringlist[17].col.pos[1] = toFIXED(-10);
+    ringlist[17].col.pos[2] = toFIXED(450);
+
+    ringlist[18].col.pos[0] = toFIXED(-50);
+    ringlist[18].col.pos[1] = toFIXED(-10);
+    ringlist[18].col.pos[2] = toFIXED(200);
+
+    ringlist[19].col.pos[0] = toFIXED(-50);
+    ringlist[19].col.pos[1] = toFIXED(-10);
+    ringlist[19].col.pos[2] = toFIXED(200);
+
+
+
+//jo_vdp2_zoom_nbg1(0.3f);
 
     jo_core_add_vblank_callback(slGouraudTblCopy);
 	jo_core_add_callback(my_draw);
@@ -531,3 +742,5 @@ void			jo_main(void)
 }
 
 //5 is width/height of the orb so 10 for entire radius.
+
+
